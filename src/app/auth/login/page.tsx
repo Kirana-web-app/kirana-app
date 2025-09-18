@@ -3,9 +3,9 @@
 import { FC } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { Button } from "../../components/Button";
-import { Input } from "../../components/Input";
-import { ROUTES } from "../../constants/routes/routes";
+import { Button } from "../../../components/UI/Button";
+import { Input } from "../../../components/UI/Input";
+import { ROUTES } from "../../../constants/routes/routes";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 
 interface LoginFormData {
