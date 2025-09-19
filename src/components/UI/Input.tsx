@@ -6,11 +6,12 @@ export interface InputProps
   label?: string;
   error?: string;
   registration?: UseFormRegisterReturn;
+  required?: boolean;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, registration, ...props }, ref) => {
-    const inputClasses = `w-full px-4 py-4 text-base text-gray-900 placeholder-gray-500 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
+  ({ className, label, error, registration, required, ...props }, ref) => {
+    const inputClasses = `w-full px-4 py-3 text-base text-gray-900 placeholder-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
       error
         ? "border-red-300 focus:ring-red-500"
         : "border-gray-300 focus:ring-primary"
@@ -24,6 +25,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             className="block text-sm font-medium text-gray-700 mb-2"
           >
             {label}
+            {required && <span className="text-red-500 ml-1">*</span>}
           </label>
         )}
         <input

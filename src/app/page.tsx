@@ -92,6 +92,7 @@ export default function GetStarted() {
             alt="get started"
             src={GetStartedImg}
             className="h-full w-full object-cover"
+            width={600}
           />
         </div>
       </div>

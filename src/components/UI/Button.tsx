@@ -15,9 +15,9 @@ const getVariantClasses = (
 ): string => {
   const variants = {
     primary:
-      "bg-primary text-white hover:bg-primary/90 focus-visible:ring-primary",
+      "bg-primary text-white hover:bg-primary/60 focus-visible:ring-primary ",
     secondary:
-      "bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500",
+      "bg-primary-lightest text-gray-900 hover:bg-primary-lightest/60 focus-visible:ring-gray-500 text-primary",
     outline:
       "border-2 border-primary text-primary bg-transparent hover:bg-primary hover:text-white focus-visible:ring-primary",
     ghost: "text-primary hover:bg-primary/10 focus-visible:ring-primary",
@@ -49,7 +49,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseClasses =
-      "inline-flex items-center justify-center whitespace-nowrap rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
+      "inline-flex items-center justify-center whitespace-nowrap rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer duration-200";
     const variantClasses = getVariantClasses(variant);
     const sizeClasses = getSizeClasses(size);
     const widthClasses = fullWidth ? "w-full" : "w-auto";

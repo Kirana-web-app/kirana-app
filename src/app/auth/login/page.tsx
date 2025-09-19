@@ -37,7 +37,7 @@ const LoginPage: FC = () => {
             <MdOutlineArrowBackIosNew className="size-6 text-primary" />
           </Link>
           <div className="text-center flex-1">
-            <h1 className="text-2xl font-bold">Login</h1>
+            <h1 className="text-2xl font-semibold">Login</h1>
           </div>
           <div className="size-6"></div>
         </div>
@@ -99,7 +99,7 @@ const LoginPage: FC = () => {
                 className="mt-8"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Signing In..." : "Sign In"}
+                {isSubmitting ? "Loging In..." : "Log In"}
               </Button>
             </div>
           </form>
@@ -130,7 +130,7 @@ const LoginPage: FC = () => {
             onClick={handleSubmit(onSubmit)}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Signing In..." : "Sign In"}
+            {isSubmitting ? "Loging In..." : "Log In"}
           </Button>
         </div>
       </div>
