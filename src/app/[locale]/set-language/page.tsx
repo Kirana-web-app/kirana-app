@@ -1,17 +1,21 @@
 "use client";
 
 import { FC, useState } from "react";
-import Link from "next/link";
-import { Button } from "../../components/UI/Button";
-import { RadioButton } from "../../components/UI/RadioButton";
-import { ROUTES } from "../../constants/routes/routes";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { ROUTES } from "@/src/constants/routes/routes";
+import { RadioButton } from "@/src/components/UI/RadioButton";
+import { Button } from "@/src/components/UI/Button";
+import { Link } from "@/src/i18n/navigation";
 
-type Language = "english" | "urdu";
+type Language = "en" | "ur";
 
 const SetLanguagePage: FC = () => {
-  const [selectedLanguage, setSelectedLanguage] = useState<Language>("english");
+  const { locale } = useParams() as { locale: Language };
+
+  const [selectedLanguage, setSelectedLanguage] = useState<Language>(
+    locale ?? "en"
+  );
 
   const handleLanguageChange = (language: Language) => {
     setSelectedLanguage(language);
@@ -37,8 +41,10 @@ const SetLanguagePage: FC = () => {
           >
             <MdOutlineArrowBackIosNew className="size-6 text-primary" />
           </Link>
-          <div className="text-center flex-1">
-            <h1 className="text-2xl font-semibold">Select Default Language</h1>
+          <div className=" flex-1">
+            <h1 className="!text-center text-2xl font-semibold">
+              Select Default Language
+            </h1>
           </div>
           <div className="size-6"></div>
         </div>
@@ -51,42 +57,46 @@ const SetLanguagePage: FC = () => {
             {/* Language Options */}
             <div className="space-y-4">
               {/* English Option */}
-              <div
-                className={`w-full px-4 py-3 border rounded-lg cursor-pointer transition-colors ${
-                  selectedLanguage === "english"
+              <Link
+                locale="en"
+                href={ROUTES.SET_LANGUAGE}
+                className={`block w-full px-4 py-3 border rounded-lg cursor-pointer transition-colors ${
+                  selectedLanguage === "en"
                     ? "border-primary bg-primary/5"
                     : "border-gray-300 hover:border-gray-400"
                 }`}
-                onClick={() => handleLanguageChange("english")}
+                onClick={() => handleLanguageChange("en")}
               >
                 <RadioButton
                   id="english"
                   name="language"
-                  value="english"
-                  checked={selectedLanguage === "english"}
+                  value="en"
+                  checked={selectedLanguage === "en"}
                   onChange={handleLanguageChange}
                   label="English"
                 />
-              </div>
+              </Link>
 
               {/* Urdu Option */}
-              <div
-                className={`w-full px-4 py-3 border rounded-lg cursor-pointer transition-colors ${
-                  selectedLanguage === "urdu"
+              <Link
+                locale="ur"
+                href={ROUTES.SET_LANGUAGE}
+                className={`block w-full px-4 py-3 border rounded-lg cursor-pointer transition-colors ${
+                  selectedLanguage === "ur"
                     ? "border-primary bg-primary/5"
                     : "border-gray-300 hover:border-gray-400"
                 }`}
-                onClick={() => handleLanguageChange("urdu")}
+                onClick={() => handleLanguageChange("ur")}
               >
                 <RadioButton
                   id="urdu"
                   name="language"
-                  value="urdu"
-                  checked={selectedLanguage === "urdu"}
+                  value="ur"
+                  checked={selectedLanguage === "ur"}
                   onChange={handleLanguageChange}
                   label="اردو (Urdu)"
                 />
-              </div>
+              </Link>
             </div>
 
             {/* Desktop Continue Button - Hidden on mobile */}

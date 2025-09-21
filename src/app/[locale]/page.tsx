@@ -1,8 +1,8 @@
 import Image from "next/image";
-import GetStartedImg from "../assets/images/get-started.jpg";
+import GetStartedImg from "../../assets/images/get-started.jpg";
 import Link from "next/link";
-import { Button } from "../components/UI/Button";
-import { ROUTES } from "../constants/routes/routes";
+import { Button } from "@/src/components/UI/Button";
+import { ROUTES } from "@/src/constants/routes/routes";
 
 export default function GetStarted() {
   return (
@@ -93,6 +93,7 @@ export default function GetStarted() {
             src={GetStartedImg}
             className="h-full w-full object-cover"
             width={600}
+            priority
           />
         </div>
       </div>

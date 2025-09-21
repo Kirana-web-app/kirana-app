@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #f18204;
+  --color-primary-lightest: #fff5eb;
+}
+
+/* Text direction for Urdu - only affects text flow, not layout */
+html[data-locale="ur"] {
+  /* Apply text direction to headings */
+  & h1,
+  & h2,
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
+    direction: rtl;
+    text-align: right;
+  }
+
+  /* Apply to paragraph text */
+  & p {
+    direction: rtl;
+    text-align: right;
+  }
+
+  /* Apply to labels */
+  & label {
+    direction: rtl;
+    text-align: right;
+  }
+
+  /* Apply to span elements (but preserve layout) */
+  & span {
+    direction: rtl;
+  }
+
+  /* Buttons with Urdu text should be RTL */
+  & button {
+    direction: rtl;
+  }
+
+  /* Form inputs - keep email/phone/password as LTR for better UX */
+  & input[type="email"],
+  & input[type="tel"],
+  & input[type="password"] {
+    direction: ltr;
+    text-align: left;
+  }
+
+  /* Text inputs for names can be RTL */
+  & input[type="text"] {
+    direction: rtl;
+    text-align: right;
+  }
+
+  /* Radio button labels */
+  & input[type="radio"] + label {
+    direction: rtl;
+    text-align: right;
+  }
+
+  /* Preserve flex layouts and don't affect positioning */
+  & .flex,
+  & .flex-col,
+  & .flex-row {
+    direction: ltr;
+  }
+
+  /* Preserve grid layouts */
+  & .grid {
+    direction: ltr;
+  }
+
+  /* Keep icons and buttons in their original position */
+  & svg,
+  & .size-6 {
+    direction: ltr;
+  }
+}
