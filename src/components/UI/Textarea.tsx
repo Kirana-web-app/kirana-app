@@ -1,17 +1,20 @@
 import React from "react";
 import { UseFormRegisterReturn } from "react-hook-form";
 
-export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+export interface TextareaProps
+  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
   registration?: UseFormRegisterReturn;
   required?: boolean;
 }
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, registration, required, ...props }, ref) => {
-    const inputClasses = `w-full px-4 py-3 text-base text-gray-900 placeholder-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
+  (
+    { className, label, error, registration, required, rows = 3, ...props },
+    ref
+  ) => {
+    const textareaClasses = `w-full px-4 py-3 text-base text-gray-900 placeholder-gray-500 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent transition-colors disabled:opacity-50 disabled:cursor-not-allowed resize-none ${
       error
         ? "border-red-300 focus:ring-red-500"
         : "border-gray-300 focus:ring-primary"
@@ -28,9 +31,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>
         )}
-        <input
+        <textarea
           ref={ref}
-          className={inputClasses}
+          className={textareaClasses}
+          rows={rows}
           {...registration}
           {...props}
         />
@@ -40,6 +44,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = "Input";
+Textarea.displayName = "Textarea";
 
-export { Input };
+export { Textarea };

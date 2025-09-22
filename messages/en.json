@@ -1,8 +1,48 @@
 {
+  "locale": { "locale": "en" },
   "SetUpBusinessProfile": {
-    "title": "Set up a Business Profile?",
+    "title_1": "Do you want to set up a Business Profile?",
+    "title_2": "Set up a Business Profile",
     "description": "Reach more customers, showcase your products, and grow your business with your online seller profile.",
     "button-primary": "Yes",
     "button-secondary": "No"
+  },
+  "StepOne": {
+    "heading": "Owner's Name",
+    "sub-heading": "For single-owner businesses, enter your full name.",
+    "placeholder": "Owner's Full Name"
+  },
+  "StepTwo": {
+    "heading": "Business Type",
+    "sub-heading": "What type of business are you running?",
+    "label": "Business Type",
+    "placeholder": "e.g., Grocery Store, Retail Shop, Restaurant"
+  },
+  "StepThree": {
+    "heading": "Where is your Shop Located?",
+    "sub-heading": "Address and Location of your business or shop.",
+    "label_1": "Country",
+    "placeholder_1": "e.g., Pakistan",
+    "label_2": "City",
+    "placeholder_2": "e.g., Karachi",
+    "label_3": "Address",
+    "placeholder_3": "Store Address"
+  },
+  "StepFour": {
+    "heading": "Store Name",
+    "sub-heading": "Your Store or Business Name (leave blank if none).",
+    "placeholder": "Store Name"
+  },
+  "StepFive": {
+    "heading": "Business Profile Image",
+    "sub-heading": "Upload an Image of your store, logo, or business owner.",
+    "placeholder": "Upload Image"
+  },
+  "StepSix": {
+    "heading": "Review Your Profile",
+    "sub-heading": "Please review your business profile information before submitting.",
+    "edit-message": "Need to make changes? You can go back and edit any information.",
+    "edit-button": "Edit Profile",
+    "submit-button": "Complete Setup"
   }
 }

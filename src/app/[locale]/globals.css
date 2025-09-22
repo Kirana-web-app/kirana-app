@@ -5,8 +5,22 @@
   --color-primary-lightest: #fff5eb;
 }
 
+body {
+  color: #131214;
+}
+
+.heading-1 {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 2rem;
+}
+
 /* Text direction for Urdu - only affects text flow, not layout */
 html[data-locale="ur"] {
+  &.no-rtl {
+    direction: ltr !important;
+  }
+
   /* Apply text direction to headings */
   & h1,
   & h2,
