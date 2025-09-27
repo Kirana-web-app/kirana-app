@@ -3,11 +3,11 @@
 import { FC } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { Button } from "../../../components/UI/Button";
-import { Input } from "../../../components/UI/Input";
-import { ROUTES } from "../../../constants/routes/routes";
+import { Input } from "@/src/components/UI/Input";
+import { ROUTES } from "@/src/constants/routes/routes";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { useRouter } from "next/navigation";
+import { Button } from "@/src/components/UI/Button";
 
 interface SignupFormData {
   fullName: string;
@@ -33,7 +33,7 @@ const SignUpPage: FC = () => {
     // Handle signup logic here
     console.log("Signup attempt:", data);
 
-    router.push(ROUTES.DEFAULT_LANGUAGE);
+    router.push(ROUTES.SET_LANGUAGE);
   };
 
   return (
