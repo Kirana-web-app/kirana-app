@@ -9,12 +9,14 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.8",
+    "@heroicons/react": "^2.2.0",
     "next": "15.5.3",
     "next-intl": "^4.3.9",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
