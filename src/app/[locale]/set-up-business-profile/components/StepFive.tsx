@@ -60,7 +60,7 @@ const StepFive: FC<StepProps> = ({ currentStep, changeStep, form }) => {
               name="businessProfileImage"
               control={control}
               rules={{
-                required: "Business profile image is required",
+                required: t("errors.required"),
                 validate: {
                   fileType: (file: File | undefined) => {
                     if (!file) return true;
@@ -71,16 +71,13 @@ const StepFive: FC<StepProps> = ({ currentStep, changeStep, form }) => {
                       "image/webp",
                     ];
                     return (
-                      allowedTypes.includes(file.type) ||
-                      "Please upload a valid image file (JPEG, PNG, WebP)"
+                      allowedTypes.includes(file.type) || t("errors.fileType")
                     );
                   },
                   fileSize: (file: File | undefined) => {
                     if (!file) return true;
                     const maxSize = 5 * 1024 * 1024; // 5MB
-                    return (
-                      file.size <= maxSize || "File size must be less than 5MB"
-                    );
+                    return file.size <= maxSize || t("errors.fileSize");
                   },
                 },
               }}

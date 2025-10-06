@@ -12,6 +12,8 @@ import ProgressBar from "./components/ProgressBar";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { useTranslations } from "next-intl";
 import { classNames } from "@/src/utils";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/src/constants/routes/routes";
 
 export interface BusinessProfileFormData {
   ownerName: string;
@@ -31,6 +33,8 @@ const SetUpBusinessProfilePage: FC = () => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   const t = useTranslations("SetUpBusinessProfile");
+
+  const router = useRouter();
 
   // Local storage keys
   const STORAGE_KEY = "businessProfileFormData";
@@ -123,7 +127,7 @@ const SetUpBusinessProfilePage: FC = () => {
       localStorage.removeItem(STEP_KEY);
     }
     // Handle form submission logic here
-    // You can navigate to next page or save data to API
+    router.push(ROUTES.PROFILE.STORE("1"));
   };
 
   // Generic changeStep function with step-specific validation
@@ -209,6 +213,7 @@ const SetUpBusinessProfilePage: FC = () => {
       key="step-6"
       currentStep={currentStep}
       changeStep={changeStep}
+      onSubmit={onSubmit}
       form={form}
     />,
   ];

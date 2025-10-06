@@ -8,7 +8,7 @@ export const user_profile: Customer = {
   profileImage:
     "https://plus.unsplash.com/premium_photo-1689977968861-9c91dbb16049?fm=jpg&q=60&w=3000&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8cHJvZmlsZSUyMHBpY3R1cmV8ZW58MHx8MHx8fDA%3D",
   savedStores: ["store_123", "store_456", "store_789"],
-  defaultLanguage: "en",
+  defaultLanguage: "ur",
   readReceipts: true,
   location: { latitude: 24.8607, longitude: 67.0011 },
 };

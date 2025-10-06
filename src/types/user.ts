@@ -18,7 +18,7 @@ export interface User {
   email: string;
   profileImage: string;
   role: "customer" | "store";
-  defaultLanguage: string;
+  defaultLanguage: "en" | "ur";
   readReceipts: boolean;
 }
 

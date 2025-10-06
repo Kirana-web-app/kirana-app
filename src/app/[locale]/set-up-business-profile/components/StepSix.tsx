@@ -7,7 +7,9 @@ import ProgressBar from "./ProgressBar";
 import Image from "next/image";
 import { StepProps } from "@/src/types/profileSetup";
 
-const StepSix: FC<StepProps> = ({ currentStep, changeStep, form }) => {
+const StepSix: FC<
+  StepProps & { onSubmit: (data: BusinessProfileFormData) => void }
+> = ({ currentStep, changeStep, form, onSubmit }) => {
   const t = useTranslations("StepSix");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -28,11 +30,6 @@ const StepSix: FC<StepProps> = ({ currentStep, changeStep, form }) => {
       reader.readAsDataURL(formData.businessProfileImage);
     }
   }, [formData.businessProfileImage]);
-
-  const onSubmit = (data: BusinessProfileFormData) => {
-    console.log("Business profile form submitted:", data);
-    // Handle final form submission
-  };
 
   // Determine heading hierarchy based on store name availability
   const hasStoreName = formData.storeName && formData.storeName.trim() !== "";

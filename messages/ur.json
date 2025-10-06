@@ -10,13 +10,22 @@
   "StepOne": {
     "heading": "مالک کا نام",
     "sub-heading": "اکیلے مالک کے کاروبار کے لیے، اپنا پورا نام درج کریں۔",
-    "placeholder": "مالک کا پورا نام"
+    "placeholder": "مالک کا پورا نام",
+    "errors": {
+      "required": "مالک کا نام ضروری ہے",
+      "minLength": "مالک کا نام کم از کم 2 حروف کا ہونا چاہیے",
+      "pattern": "مالک کا نام صرف حروف اور اسپیس پر مشتمل ہو سکتا ہے"
+    }
   },
   "StepTwo": {
     "heading": "کاروباری قسم",
     "sub-heading": "آپ کس قسم کا کاروبار چلا رہے ہیں؟",
     "label": "کاروباری قسم",
-    "placeholder": "مثال: گروسری سٹور، ریٹیل شاپ، ریسٹورنٹ"
+    "placeholder": "مثال: گروسری سٹور، ریٹیل شاپ، ریسٹورنٹ",
+    "errors": {
+      "required": "کاروباری قسم ضروری ہے",
+      "minLength": "کاروباری قسم کم از کم 2 حروف کا ہونا چاہیے"
+    }
   },
   "StepThree": {
     "heading": "آپ کی دکان کہاں واقع ہے؟",
@@ -26,17 +35,34 @@
     "label_2": "شہر",
     "placeholder_2": "مثال: کراچی",
     "label_3": "پتہ",
-    "placeholder_3": "دکان کا پتہ"
+    "placeholder_3": "دکان کا پتہ",
+    "errors": {
+      "countryRequired": "ملک کا نام ضروری ہے",
+      "countryMinLength": "ملک کا نام کم از کم 2 حروف کا ہونا چاہیے",
+      "cityRequired": "شہر کا نام ضروری ہے",
+      "cityMinLength": "شہر کا نام کم از کم 2 حروف کا ہونا چاہیے",
+      "addressRequired": "پتہ ضروری ہے",
+      "addressMinLength": "پتہ کم از کم 5 حروف کا ہونا چاہیے"
+    }
   },
   "StepFour": {
     "heading": "دکان کا نام",
     "sub-heading": "آپ کی دکان یا کاروبار کا نام (اگر کوئی نہیں تو خالی چھوڑ دیں)",
-    "placeholder": "دکان کا نام"
+    "placeholder": "دکان کا نام",
+    "errors": {
+      "minLength": "دکان کا نام کم از کم 2 حروف کا ہونا چاہیے",
+      "maxLength": "دکان کا نام 50 حروف سے کم ہونا چاہیے"
+    }
   },
   "StepFive": {
     "heading": "کاروباری پروفائل کی تصویر",
     "sub-heading": "اپنی دکان، لوگو، یا کاروباری مالک کی تصویر اپ لوڈ کریں۔",
-    "placeholder": "تصویر اپ لوڈ کریں"
+    "placeholder": "تصویر اپ لوڈ کریں",
+    "errors": {
+      "required": "کاروباری پروفائل کی تصویر ضروری ہے",
+      "fileType": "برائے کرم ایک درست تصویری فائل اپ لوڈ کریں (JPEG, PNG, WebP)",
+      "fileSize": "فائل کا سائز 5MB سے کم ہونا چاہیے"
+    }
   },
   "StepSix": {
     "heading": "اپنا پروفائل دیکھیں",
@@ -44,5 +70,67 @@
     "edit-message": "تبدیلی کی ضرورت ہے؟ آپ واپس جا کر کوئی بھی معلومات میں تبدیلی کر سکتے ہیں۔",
     "edit-button": "پروفائل میں تبدیلی کریں",
     "submit-button": "سیٹ اپ مکمل کریں"
+  },
+  "CustomerProfile": {
+    "title": "پروفائل",
+    "editProfile": "پروفائل میں تبدیلی کریں",
+    "saved": "محفوظ شدہ",
+    "settings": "سیٹنگز",
+    "defaultLanguage": "ڈیفالٹ زبان",
+    "selectLanguage": "زبان منتخب کریں",
+    "english": "انگریزی",
+    "urdu": "اردو",
+    "readReceipts": "ریڈ ریسیپٹس",
+    "logOut": "لاگ آؤٹ"
+  },
+  "StoreProfile": {
+    "editProfile": "پروفائل میں تبدیلی کریں",
+    "storeRating": "اسٹور کی درجہ بندی",
+    "deliveryRate": "ڈیلیوری کی رفتار",
+    "address": "پتہ",
+    "reviews": "جائزے",
+    "noReviews": "ابھی تک کوئی جائزہ نہیں۔",
+    "settings": "سیٹنگز",
+    "defaultLanguage": "ڈیفالٹ زبان",
+    "selectLanguage": "زبان منتخب کریں",
+    "english": "انگریزی",
+    "urdu": "اردو",
+    "readReceipts": "ریڈ ریسیپٹس",
+    "logOut": "لاگ آؤٹ"
+  },
+  "Chat": {
+    "messages": "گفتگو",
+    "searchConversations": "گفتگو تلاش کریں...",
+    "typeMessage": "پیغام ٹائپ کریں...",
+    "send": "بھیجیں",
+    "backToChats": "چیٹس پر واپس",
+    "selectConversation": "گفتگو منتخب کریں",
+    "chooseCustomer": "چیٹ شروع کرنے کے لیے سائیڈبار سے کوئی گاہک منتخب کریں۔",
+    "online": "آن لائن",
+    "lastSeen": "آخری بار دیکھا"
+  },
+  "Bazaar": {
+    "nearYou": "آپ کے قریب",
+    "saved": "محفوظ شدہ",
+    "search": "تلاش",
+    "filters": "فلٹرز",
+    "clearFilters": "فلٹرز صاف کریں",
+    "businessType": "کاروباری قسم",
+    "selectBusinessTypes": "کاروباری اقسام منتخب کریں",
+    "deliveryTime": "ڈیلیوری کا وقت",
+    "rating": "درجہ بندی",
+    "quickDelivery": "تیز (5 - 15 منٹ)",
+    "fastDelivery": "تیز رفتار (15 - 30 منٹ)",
+    "averageDelivery": "اوسط (30 - 60 منٹ)",
+    "slowDelivery": "سست (1 - 6 گھنٹے)",
+    "slowestDelivery": "سب سے سست (1 - 3 دن)",
+    "notRatedYet": "ابھی تک ریٹنگ نہیں دی گئی",
+    "newStore": "نئی دکان",
+    "noStoresMatch": "آپ کے فلٹرز سے کوئی دکان میل نہیں کھاتی",
+    "noSavedStores": "ابھی تک کوئی دکان محفوظ نہیں کی گئی",
+    "noStoresNearby": "قریب کوئی دکان نہیں",
+    "adjustFilters": "مزید نتائج دیکھنے کے لیے اپنے تلاش کے معیار کو ایڈجسٹ کریں یا کچھ فلٹرز صاف کریں۔",
+    "saveStoresMessage": "اپنی پسندیدہ دکانوں کو یہاں دیکھنے کے لیے محفوظ کریں۔ سٹور کارڈز پر دل کے آئیکن کو تلاش کریں۔",
+    "expandSearch": "ہم آپ کے علاقے میں کوئی دکان نہیں مل سکی۔ اپنے تلاش کے دائرے کو بڑھانے کی کوشش کریں یا بعد میں واپس آئیں۔"
   }
 }

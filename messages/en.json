@@ -10,13 +10,22 @@
   "StepOne": {
     "heading": "Owner's Name",
     "sub-heading": "For single-owner businesses, enter your full name.",
-    "placeholder": "Owner's Full Name"
+    "placeholder": "Owner's Full Name",
+    "errors": {
+      "required": "Owner's name is required",
+      "minLength": "Owner's name must be at least 2 characters",
+      "pattern": "Owner's name can only contain letters and spaces"
+    }
   },
   "StepTwo": {
     "heading": "Business Type",
     "sub-heading": "What type of business are you running?",
     "label": "Business Type",
-    "placeholder": "e.g., Grocery Store, Retail Shop, Restaurant"
+    "placeholder": "e.g., Grocery Store, Retail Shop, Restaurant",
+    "errors": {
+      "required": "Business type is required",
+      "minLength": "Business type must be at least 2 characters"
+    }
   },
   "StepThree": {
     "heading": "Where is your Shop Located?",
@@ -26,17 +35,34 @@
     "label_2": "City",
     "placeholder_2": "e.g., Karachi",
     "label_3": "Address",
-    "placeholder_3": "Store Address"
+    "placeholder_3": "Store Address",
+    "errors": {
+      "countryRequired": "Country is required",
+      "countryMinLength": "Country must be at least 2 characters",
+      "cityRequired": "City is required",
+      "cityMinLength": "City must be at least 2 characters",
+      "addressRequired": "Address is required",
+      "addressMinLength": "Address must be at least 5 characters"
+    }
   },
   "StepFour": {
     "heading": "Store Name",
     "sub-heading": "Your Store or Business Name (leave blank if none).",
-    "placeholder": "Store Name"
+    "placeholder": "Store Name",
+    "errors": {
+      "minLength": "Store name must be at least 2 characters",
+      "maxLength": "Store name must be less than 50 characters"
+    }
   },
   "StepFive": {
     "heading": "Business Profile Image",
     "sub-heading": "Upload an Image of your store, logo, or business owner.",
-    "placeholder": "Upload Image"
+    "placeholder": "Upload Image",
+    "errors": {
+      "required": "Business profile image is required",
+      "fileType": "Please upload a valid image file (JPEG, PNG, WebP)",
+      "fileSize": "File size must be less than 5MB"
+    }
   },
   "StepSix": {
     "heading": "Review Your Profile",
@@ -44,5 +70,67 @@
     "edit-message": "Need to make changes? You can go back and edit any information.",
     "edit-button": "Edit Profile",
     "submit-button": "Complete Setup"
+  },
+  "CustomerProfile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "saved": "Saved",
+    "settings": "Settings",
+    "defaultLanguage": "Default Language",
+    "selectLanguage": "Select a language",
+    "english": "English",
+    "urdu": "Urdu",
+    "readReceipts": "Read Receipts",
+    "logOut": "Log Out"
+  },
+  "StoreProfile": {
+    "editProfile": "Edit Profile",
+    "storeRating": "Store Rating",
+    "deliveryRate": "Delivery Rate",
+    "address": "Address",
+    "reviews": "Reviews",
+    "noReviews": "No reviews yet.",
+    "settings": "Settings",
+    "defaultLanguage": "Default Language",
+    "selectLanguage": "Select a language",
+    "english": "English",
+    "urdu": "Urdu",
+    "readReceipts": "Read Receipts",
+    "logOut": "Log Out"
+  },
+  "Chat": {
+    "messages": "Messages",
+    "searchConversations": "Search conversations...",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "backToChats": "Back to chats",
+    "selectConversation": "Select a conversation",
+    "chooseCustomer": "Choose a customer from the sidebar to start chatting.",
+    "online": "Online",
+    "lastSeen": "Last seen"
+  },
+  "Bazaar": {
+    "nearYou": "Near You",
+    "saved": "Saved",
+    "search": "Search",
+    "filters": "Filters",
+    "clearFilters": "Clear Filters",
+    "businessType": "Business Type",
+    "selectBusinessTypes": "Select business types",
+    "deliveryTime": "Delivery Time",
+    "rating": "Rating",
+    "quickDelivery": "Quick (5 - 15 mins)",
+    "fastDelivery": "Fast (15 - 30 mins)",
+    "averageDelivery": "Average (30 - 60 mins)",
+    "slowDelivery": "Slow (1 - 6 hours)",
+    "slowestDelivery": "Slowest (1 - 3 days)",
+    "notRatedYet": "Not rated yet",
+    "newStore": "New store",
+    "noStoresMatch": "No stores match your filters",
+    "noSavedStores": "No saved stores yet",
+    "noStoresNearby": "No stores nearby",
+    "adjustFilters": "Try adjusting your search criteria or clearing some filters to see more results.",
+    "saveStoresMessage": "Save your favorite stores to see them here. Look for the heart icon on store cards.",
+    "expandSearch": "We couldn't find any stores in your area. Try expanding your search radius or check back later."
   }
 }

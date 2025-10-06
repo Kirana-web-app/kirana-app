@@ -3,6 +3,7 @@ import SearchBar from "@/src/components/UI/SearchBar";
 import { FC, useState } from "react";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ROUTES } from "@/src/constants/routes/routes";
 
 interface UserListProps {
@@ -17,8 +18,8 @@ const UserList: FC<UserListProps> = ({
   onUserSelect,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
-
   const router = useRouter();
+  const t = useTranslations("Chat");
 
   // Filter users based on search query
   const filteredUsers = users.filter(
@@ -36,7 +37,7 @@ const UserList: FC<UserListProps> = ({
           <MdOutlineArrowBackIosNew className="size-5" />
         </button>
         <h2 className="text-lg md:text-xl font-semibold text-gray-900">
-          Messages
+          <span data-translated>{t("messages")}</span>
         </h2>
       </div>
 
@@ -45,7 +46,7 @@ const UserList: FC<UserListProps> = ({
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search conversations..."
+          placeholder={t("searchConversations")}
           className=""
         />
       </div>
@@ -62,7 +63,7 @@ const UserList: FC<UserListProps> = ({
                 : "hover:bg-gray-50"
             }`}
           >
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
               {/* Avatar with online status */}
               <div className="relative flex-shrink-0">
                 <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-300 rounded-full flex items-center justify-center">
@@ -82,15 +83,15 @@ const UserList: FC<UserListProps> = ({
               {/* User Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm md:text-sm font-medium text-gray-900 truncate">
+                  <h3 className="text-sm md:text-sm font-medium text-gray-900 truncate user-name">
                     {user.name}
                   </h3>
-                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
+                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2 date">
                     {user.timestamp}
                   </span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-xs md:text-sm text-gray-600 truncate pr-2">
+                  <p className="text-xs md:text-sm text-gray-600 truncate pr-2 dynamic-content">
                     {user.lastMessage}
                   </p>
                   {user.unreadCount > 0 && (

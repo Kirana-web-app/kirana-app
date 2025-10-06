@@ -5,6 +5,7 @@ import { ROUTES } from "@/src/constants/routes/routes";
 import { Store } from "@/src/types/user";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 import { GoBookmark } from "react-icons/go";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
@@ -17,11 +18,12 @@ const StoreProfile: FC<{
 }> = ({ userData, handleBackClick }) => {
   const [user, setUser] = useState(userData);
   const router = useRouter();
+  const t = useTranslations("StoreProfile");
 
   const languageOptions = [
     {
       value: "en",
-      label: "English",
+      label: t("english"),
       onClick: () => {
         setUser({ ...user, defaultLanguage: "en" });
         router.push(`/en${ROUTES.PROFILE.STORE(user.id)}`);
@@ -29,7 +31,7 @@ const StoreProfile: FC<{
     },
     {
       value: "ur",
-      label: "Urdu",
+      label: t("urdu"),
       onClick: () => {
         setUser({ ...user, defaultLanguage: "ur" });
         router.push(`/ur${ROUTES.PROFILE.STORE(user.id)}`);
@@ -64,20 +66,20 @@ const StoreProfile: FC<{
                 </button>
               </div>
               <div className="absolute bottom-6 left-6 text-white space-y-2 w-80">
-                <h2 className="font-bold text-2xl">{user.name}</h2>
-                <p className="">{user.email}</p>
+                <h2 className="font-bold text-2xl store-name">{user.name}</h2>
+                <p className="user-email">{user.email}</p>
               </div>
             </div>
             <div className="px-4 space-y-6 py-6">
               <div className="">
                 <Button variant="secondary" fullWidth>
-                  Edit Profile
+                  {t("editProfile")}
                 </Button>
               </div>
               <div className="">
                 <div className="flex gap-20 items-center justify-between py-6 border-b border-gray-200">
-                  <p className="font-medium text-lg">Store Rating</p>
-                  <div className="text-primary flex items-center gap-2 font-semibold text-lg">
+                  <p className="font-medium text-lg">{t("storeRating")}</p>
+                  <div className="text-primary flex items-center gap-2 font-semibold text-lg rating">
                     {userData.rating}
                     <div className="">
                       {[1, 2, 3, 4, 5].map((key) => (
@@ -89,15 +91,15 @@ const StoreProfile: FC<{
                   </div>
                 </div>
                 <div className="flex gap-20 items-center justify-between py-6 border-b border-gray-200">
-                  <p className="font-medium text-lg">Delivery Rate</p>
+                  <p className="font-medium text-lg">{t("deliveryRate")}</p>
 
-                  <div className="text-primary flex items-center gap-2 font-semibold text-lg">
+                  <div className="text-primary flex items-center gap-2 font-semibold text-lg dynamic-content">
                     {userData.deliverySpeed}
                   </div>
                 </div>
                 <div className="flex gap-20 items-center justify-between py-6 border-b border-gray-200">
-                  <p className="font-medium text-lg">Address</p>
-                  <div className="text-primary flex items-center gap-2 font-semibold text-lg">
+                  <p className="font-medium text-lg">{t("address")}</p>
+                  <div className="text-primary flex items-center gap-2 font-semibold text-lg address-line">
                     {userData.address.addressLine}
                   </div>
                 </div>
@@ -109,7 +111,9 @@ const StoreProfile: FC<{
       <div className="border-b-8 border-gray-100 "></div>
       <div className="mx-auto max-w-4xl">
         <div className="px-4 py-6 w-full">
-          <h3 className="text-xl font-bold">Reviews</h3>
+          <h3 className="text-xl font-bold">
+            <span data-translated>{t("reviews")}</span>
+          </h3>
           <div className="">
             {userData.reviews && userData.reviews.length > 0 ? (
               userData.reviews.map((review) => (
@@ -122,16 +126,24 @@ const StoreProfile: FC<{
                   </div>
                   <div className="w-full">
                     <div className="flex items-center gap-2 font-medium">
-                      <p className="font-semibold">{review.userName}</p>
-                      <div className="text-primary">{userData.rating} ★</div>
+                      <p className="font-semibold user-name">
+                        {review.userName}
+                      </p>
+                      <div className="text-primary rating">
+                        {userData.rating} ★
+                      </div>
                     </div>
-                    <p className="text-base pt-2">{review.comment}</p>
+                    <p className="text-base pt-2 review-content">
+                      {review.comment}
+                    </p>
                   </div>
-                  <p className="text-sm opacity-50  shrink-0 ">{review.date}</p>
+                  <p className="text-sm opacity-50  shrink-0 date">
+                    {review.date}
+                  </p>
                 </div>
               ))
             ) : (
-              <p className="text-gray-600">No reviews yet.</p>
+              <p className="text-gray-600">{t("noReviews")}</p>
             )}
           </div>
         </div>
@@ -139,7 +151,9 @@ const StoreProfile: FC<{
       <div className="border-b-8 border-gray-100 "></div>
       <div className="mx-auto max-w-4xl">
         <div className="px-4 py-6 w-full">
-          <h3 className="text-xl font-bold">Settings</h3>
+          <h3 className="text-xl font-bold">
+            <span data-translated>{t("settings")}</span>
+          </h3>
 
           <div className="mt-6 space-y-6">
             <div className="">
@@ -147,19 +161,19 @@ const StoreProfile: FC<{
                 htmlFor="default-language"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Default Language
+                {t("defaultLanguage")}
               </label>
               <CustomSelect
                 options={languageOptions}
                 value={user.defaultLanguage}
-                placeholder="Select a language"
+                placeholder={t("selectLanguage")}
                 className="w-full"
               />
             </div>
             <div className="flex items-center justify-between gap-2">
               <div className="flex in-checked gap-2">
                 <IoCheckmarkDoneOutline className="size-6" />
-                <span>Read Receipts</span>
+                <span>{t("readReceipts")}</span>
               </div>
               <Toggle
                 onChange={() => {
@@ -170,7 +184,7 @@ const StoreProfile: FC<{
             </div>
             <div className="">
               <Button fullWidth variant="destructive">
-                Log Out
+                {t("logOut")}
               </Button>
             </div>
           </div>

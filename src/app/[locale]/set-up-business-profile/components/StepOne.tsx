@@ -24,14 +24,14 @@ const StepOne: FC<StepProps> = ({ currentStep, changeStep, form }) => {
             </div>
             <Input
               {...register("ownerName", {
-                required: "Owner's name is required",
+                required: t("errors.required"),
                 minLength: {
                   value: 2,
-                  message: "Owner's name must be at least 2 characters",
+                  message: t("errors.minLength"),
                 },
                 pattern: {
-                  value: /^[a-zA-Z\s]+$/,
-                  message: "Owner's name can only contain letters and spaces",
+                  value: /^[\p{L}\p{M}\s]+$/u,
+                  message: t("errors.pattern"),
                 },
               })}
               id="ownerName"

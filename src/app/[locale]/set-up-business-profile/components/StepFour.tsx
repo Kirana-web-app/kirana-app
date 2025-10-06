@@ -28,11 +28,11 @@ const StepFour: FC<StepProps> = ({ currentStep, changeStep, form }) => {
               {...register("storeName", {
                 minLength: {
                   value: 2,
-                  message: "Store name must be at least 2 characters",
+                  message: t("errors.minLength"),
                 },
                 maxLength: {
                   value: 50,
-                  message: "Store name must be less than 50 characters",
+                  message: t("errors.maxLength"),
                 },
               })}
               id="storeName"

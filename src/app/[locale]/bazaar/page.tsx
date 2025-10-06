@@ -5,12 +5,14 @@ import { store } from "@/src/data/mockStores";
 import { Store } from "@/src/types/user";
 import { useFilterStore } from "@/src/stores/filterStore";
 import { filterStores } from "@/src/utils/filterUtils";
+import { useTranslations } from "next-intl";
 
 type TabType = "nearYou" | "saved";
 
 const BazaarPage: FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("nearYou");
   const [savedStores, setSavedStores] = useState<string[]>(["2"]); // Mock saved store IDs
+  const t = useTranslations("Bazaar");
 
   // Get filter state from Zustand store
   const filters = useFilterStore();
@@ -55,7 +57,7 @@ const BazaarPage: FC = () => {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-              Near You
+              <span data-translated>{t("nearYou")}</span>
             </button>
             <button
               onClick={() => handleTabChange("saved")}
@@ -65,7 +67,7 @@ const BazaarPage: FC = () => {
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
-              Saved
+              <span data-translated>{t("saved")}</span>
             </button>
           </div>
         </div>
@@ -118,31 +120,34 @@ const BazaarPage: FC = () => {
               )}
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {(() => {
-                const hasFilters =
-                  filters.searchQuery ||
-                  filters.selectedBusinessTypes.length > 0 ||
-                  filters.selectedDeliveryRate ||
-                  filters.selectedRating > 0;
-                if (hasFilters) return "No stores match your filters";
-                return activeTab === "saved"
-                  ? "No saved stores yet"
-                  : "No stores nearby";
-              })()}
+              <span data-translated>
+                {(() => {
+                  const hasFilters =
+                    filters.searchQuery ||
+                    filters.selectedBusinessTypes.length > 0 ||
+                    filters.selectedDeliveryRate ||
+                    filters.selectedRating > 0;
+                  if (hasFilters) return t("noStoresMatch");
+                  return activeTab === "saved"
+                    ? t("noSavedStores")
+                    : t("noStoresNearby");
+                })()}
+              </span>
             </h3>
             <p className="text-gray-500 text-center max-w-md">
-              {(() => {
-                const hasFilters =
-                  filters.searchQuery ||
-                  filters.selectedBusinessTypes.length > 0 ||
-                  filters.selectedDeliveryRate ||
-                  filters.selectedRating > 0;
-                if (hasFilters)
-                  return "Try adjusting your search criteria or clearing some filters to see more results.";
-                return activeTab === "saved"
-                  ? "Save your favorite stores to see them here. Look for the heart icon on store cards."
-                  : "We couldn't find any stores in your area. Try expanding your search radius or check back later.";
-              })()}
+              <span data-translated>
+                {(() => {
+                  const hasFilters =
+                    filters.searchQuery ||
+                    filters.selectedBusinessTypes.length > 0 ||
+                    filters.selectedDeliveryRate ||
+                    filters.selectedRating > 0;
+                  if (hasFilters) return t("adjustFilters");
+                  return activeTab === "saved"
+                    ? t("saveStoresMessage")
+                    : t("expandSearch");
+                })()}
+              </span>
             </p>
           </div>
         )}

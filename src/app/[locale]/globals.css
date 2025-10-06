@@ -18,61 +18,54 @@ body {
 
 /* Text direction for Urdu - only affects text flow, not layout */
 html[data-locale="ur"] {
-  &.no-rtl {
+  .no-rtl {
     direction: ltr !important;
   }
 
-  /* Apply text direction to headings */
-  & h1,
-  & h2,
-  & h3,
-  & h4,
-  & h5,
-  & h6 {
+  /* Apply RTL only to static translated content */
+  /* Headings that contain translated text */
+  & h1:has([data-translated]),
+  & h2:has([data-translated]),
+  & h3:has([data-translated]),
+  & h4:has([data-translated]),
+  & h5:has([data-translated]),
+  & h6:has([data-translated]),
+  & p:has([data-translated]) {
     direction: rtl;
     text-align: right;
   }
 
-  /* Apply to paragraph text */
-  & p {
-    direction: rtl;
-    text-align: right;
-  }
-
-  /* Apply to labels */
+  /* Labels for form fields (translated content) */
   & label {
     direction: rtl;
     text-align: right;
   }
 
-  /* Apply to span elements (but preserve layout) */
-  & span {
+  /* Button text (translated content) */
+  & button span,
+  & button:not(:has(svg)) {
     direction: rtl;
   }
 
-  /* Buttons with Urdu text should be RTL */
-  & button {
-    direction: rtl;
+  /* Keep dynamic content LTR */
+  & .dynamic-content,
+  & .user-name,
+  & .user-email,
+  & .store-name,
+  & .review-content,
+  & .address-line,
+  & .business-type {
+    direction: ltr !important;
+    text-align: left !important;
   }
 
   /* Form inputs - keep email/phone/password as LTR for better UX */
   & input[type="email"],
   & input[type="tel"],
-  & input[type="password"] {
+  & input[type="password"],
+  & input[type="text"] {
     direction: ltr;
     text-align: left;
-  }
-
-  /* Text inputs for names can be RTL */
-  & input[type="text"] {
-    direction: rtl;
-    text-align: right;
-  }
-
-  /* Radio button labels */
-  & input[type="radio"] + label {
-    direction: rtl;
-    text-align: right;
   }
 
   /* Preserve flex layouts and don't affect positioning */
@@ -91,5 +84,13 @@ html[data-locale="ur"] {
   & svg,
   & .size-6 {
     direction: ltr;
+  }
+
+  /* Keep numeric content LTR (ratings, dates, etc.) */
+  & .rating,
+  & .date,
+  & .numeric {
+    direction: ltr !important;
+    text-align: left !important;
   }
 }

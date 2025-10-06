@@ -34,22 +34,6 @@ import {
 } from "@/src/data/businessTypes";
 import { useTranslations } from "next-intl";
 
-const sortOptions = [
-  { name: "Most Popular", href: "#", current: true },
-  { name: "Best Rating", href: "#", current: false },
-  { name: "Newest", href: "#", current: false },
-  { name: "Price: Low to High", href: "#", current: false },
-  { name: "Price: High to Low", href: "#", current: false },
-];
-
-const deliveryRate = [
-  { id: 1, name: "Quick (5 - 15 mins)", value: "Quick" },
-  { id: 2, name: "Fast (15 - 30 mins)", value: "Fast" },
-  { id: 3, name: "Average (30 - 60 mins)", value: "Average" },
-  { id: 4, name: "Slow (1 - 6 hours)", value: "Slow" },
-  { id: 5, name: "Slowest (1 - 3 days)", value: "Slowest" },
-];
-
 const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -67,8 +51,16 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
     clearFilters,
   } = useFilterStore();
 
-  //   const t = useTranslations("Filters");
+  const t = useTranslations("Bazaar");
   const l = useTranslations("locale");
+
+  const deliveryRate = [
+    { id: 1, name: t("quickDelivery"), value: "Quick" },
+    { id: 2, name: t("fastDelivery"), value: "Fast" },
+    { id: 3, name: t("averageDelivery"), value: "Average" },
+    { id: 4, name: t("slowDelivery"), value: "Slow" },
+    { id: 5, name: t("slowestDelivery"), value: "Slowest" },
+  ];
 
   const handleRatingClick = (rating: number) => {
     const newRating = rating === selectedRating ? 0 : rating;
@@ -121,9 +113,11 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   onClick={clearFilters}
                   className="text-sm text-primary hover:text-primary/80 font-medium"
                 >
-                  Clear Filters
+                  <span data-translated>{t("clearFilters")}</span>
                 </button>
-                <h2 className="text-lg font-medium">Filters</h2>
+                <h2 className="text-lg font-medium">
+                  <span data-translated>{t("filters")}</span>
+                </h2>
                 <button
                   type="button"
                   onClick={() => setMobileFiltersOpen(false)}
@@ -139,7 +133,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                 {/* Business Type Filter */}
                 <div className="px-4 py-6 border-b border-gray-200">
                   <h3 className="text-sm font-medium text-gray-900 mb-4">
-                    Business Type
+                    <span data-translated>{t("businessType")}</span>
                   </h3>
                   <ComboboxDropDown
                     options={
@@ -149,7 +143,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                     }
                     value={""}
                     onChange={handleBusinessTypeChange}
-                    placeholder="Select business types"
+                    placeholder={t("selectBusinessTypes")}
                     name="businessType"
                     id="mobile-businessType"
                   />
@@ -174,7 +168,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                 {/* Delivery Rate Filter */}
                 <div className="px-4 py-6 border-b border-gray-200">
                   <h3 className="text-sm font-medium text-gray-900 mb-4">
-                    Delivery Time
+                    <span data-translated>{t("deliveryTime")}</span>
                   </h3>
                   <div className="space-y-3">
                     {deliveryRate.map((rate) => (
@@ -194,7 +188,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                 {/* Rating Filter */}
                 <div className="px-4 py-6 border-b border-gray-200">
                   <h3 className="text-sm font-medium text-gray-900 mb-4">
-                    Rating
+                    <span data-translated>{t("rating")}</span>
                   </h3>
 
                   {/* Star Rating Display */}
@@ -228,7 +222,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                       type="number"
                       min="0"
                       max="5"
-                      step="0.1"
+                      step="0.5"
                       value={selectedRating || ""}
                       onChange={(e) => handleRatingInputChange(e.target.value)}
                       placeholder="0.0"
@@ -247,7 +241,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Search"
+              placeholder={t("search")}
               className="flex-1 max-w-lg"
             />
             <div className="flex items-center">
@@ -271,19 +265,21 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
               {/* Filters */}
               <form className="hidden lg:block">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-medium text-gray-900">Filters</h2>
+                  <h2 className="text-lg font-medium text-gray-900">
+                    <span data-translated>{t("filters")}</span>
+                  </h2>
                   <button
                     type="button"
                     onClick={clearFilters}
                     className="text-sm text-primary hover:text-primary/80 font-medium"
                   >
-                    Clear Filters
+                    <span data-translated>{t("clearFilters")}</span>
                   </button>
                 </div>
                 {/* Business Type Filter */}
                 <div className="border-b border-gray-200 pb-6 mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-4">
-                    Business Type
+                    <span data-translated>{t("businessType")}</span>
                   </h3>
                   <ComboboxDropDown
                     options={
@@ -293,7 +289,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                     }
                     value={""}
                     onChange={handleBusinessTypeChange}
-                    placeholder="Select business types"
+                    placeholder={t("selectBusinessTypes")}
                     name="businessType"
                     id="desktop-businessType"
                   />
@@ -319,7 +315,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                 {/* Delivery Rate Filter */}
                 <div className="border-b border-gray-200 pb-6 mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-4">
-                    Delivery Time
+                    <span data-translated>{t("deliveryTime")}</span>
                   </h3>
                   <div className="space-y-3">
                     {deliveryRate.map((rate) => (
@@ -340,7 +336,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                 {/* Rating Filter */}
                 <div className="border-b border-gray-200 pb-6 mb-6">
                   <h3 className="text-sm font-medium text-gray-900 mb-4">
-                    Rating
+                    <span data-translated>{t("rating")}</span>
                   </h3>
 
                   {/* Star Rating Display */}
@@ -374,7 +370,7 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                       type="number"
                       min="0"
                       max="5"
-                      step="0.1"
+                      step="0.5"
                       value={selectedRating || ""}
                       onChange={(e) => handleRatingInputChange(e.target.value)}
                       placeholder="0.0"

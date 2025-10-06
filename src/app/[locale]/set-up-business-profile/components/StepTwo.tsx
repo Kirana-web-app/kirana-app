@@ -32,10 +32,10 @@ const StepTwo: FC<StepProps> = ({ currentStep, changeStep, form }) => {
               name="businessType"
               control={control}
               rules={{
-                required: "Business type is required",
+                required: t("errors.required"),
                 minLength: {
                   value: 2,
-                  message: "Business type must be at least 2 characters",
+                  message: t("errors.minLength"),
                 },
               }}
               render={({ field }) => (

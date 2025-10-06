@@ -5,6 +5,7 @@ import { ROUTES } from "@/src/constants/routes/routes";
 import { Customer } from "@/src/types/user";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
 import { GoBookmark } from "react-icons/go";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
@@ -16,11 +17,12 @@ const CustomerProfile: FC<{
 }> = ({ userData, handleBackClick }) => {
   const [user, setUser] = useState(userData);
   const router = useRouter();
+  const t = useTranslations("CustomerProfile");
 
   const languageOptions = [
     {
       value: "en",
-      label: "English",
+      label: t("english"),
       onClick: () => {
         setUser({ ...user, defaultLanguage: "en" });
         router.push(`/en${ROUTES.PROFILE.USER(user.id)}`);
@@ -28,7 +30,7 @@ const CustomerProfile: FC<{
     },
     {
       value: "ur",
-      label: "Urdu",
+      label: t("urdu"),
       onClick: () => {
         setUser({ ...user, defaultLanguage: "ur" });
         router.push(`/ur${ROUTES.PROFILE.USER(user.id)}`);
@@ -57,19 +59,19 @@ const CustomerProfile: FC<{
                 height={64}
               />
               <div className="">
-                <h2 className="font-bold text-2xl">{user.name}</h2>
-                <p className="">{user.email}</p>
+                <h2 className="font-bold text-2xl user-name">{user.name}</h2>
+                <p className="user-email">{user.email}</p>
               </div>
             </div>
             <div className="">
               <Button variant="secondary" fullWidth>
-                Edit Profile
+                {t("editProfile")}
               </Button>
             </div>
             <div className="flex items-center justify-between py-6">
               <div className="flex items-center gap-3">
                 <GoBookmark className="size-6" />
-                <p className="font-medium">Saved</p>
+                <p className="font-medium">{t("saved")}</p>
               </div>
               <div className="rotate-180">
                 <MdOutlineArrowBackIosNew />
@@ -81,7 +83,9 @@ const CustomerProfile: FC<{
       <div className="border-b-8 border-gray-100 "></div>
       <div className="mx-auto max-w-2xl">
         <div className="px-4 py-6 w-full">
-          <h3 className="text-xl font-bold">Settings</h3>
+          <h3 className="text-xl font-bold">
+            <span data-translated>{t("settings")}</span>
+          </h3>
 
           <div className="mt-6 space-y-6">
             <div className="">
@@ -89,19 +93,19 @@ const CustomerProfile: FC<{
                 htmlFor="default-language"
                 className="block text-sm font-medium text-gray-700 mb-2"
               >
-                Default Language
+                {t("defaultLanguage")}
               </label>
               <CustomSelect
                 options={languageOptions}
                 value={user.defaultLanguage}
-                placeholder="Select a language"
+                placeholder={t("selectLanguage")}
                 className="w-full"
               />
             </div>
             <div className=" flex items-center justify-between gap-2">
               <div className="flex in-checked gap-2">
                 <IoCheckmarkDoneOutline className="size-6" />
-                <span>Read Receipts</span>
+                <span>{t("readReceipts")}</span>
               </div>
               <Toggle
                 onChange={() => {
@@ -112,7 +116,7 @@ const CustomerProfile: FC<{
             </div>
             <div className="">
               <Button fullWidth variant="destructive">
-                Log Out
+                {t("logOut")}
               </Button>
             </div>
           </div>

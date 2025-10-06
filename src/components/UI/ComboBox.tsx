@@ -93,7 +93,11 @@ const ComboboxDropDown = forwardRef<HTMLInputElement, ComboboxDropDownProps>(
                   value={option}
                   className="cursor-default px-3 py-2 text-gray-900 select-none data-focus:bg-primary data-focus:text-white data-focus:outline-hidden"
                 >
-                  <span className="block truncate">{option}</span>
+                  <p>
+                    <span className="block truncate" data-translated>
+                      {option}
+                    </span>
+                  </p>
                 </ComboboxOption>
               ))}
             </ComboboxOptions>

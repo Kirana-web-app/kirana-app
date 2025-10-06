@@ -27,10 +27,10 @@ const StepThree: FC<StepProps> = ({ currentStep, changeStep, form }) => {
             {/* Country Input */}
             <Input
               {...register("location.country", {
-                required: "Country is required",
+                required: t("errors.countryRequired"),
                 minLength: {
                   value: 2,
-                  message: "Country must be at least 2 characters",
+                  message: t("errors.countryMinLength"),
                 },
               })}
               id="country"
@@ -46,10 +46,10 @@ const StepThree: FC<StepProps> = ({ currentStep, changeStep, form }) => {
             {/* City Input */}
             <Input
               {...register("location.city", {
-                required: "City is required",
+                required: t("errors.cityRequired"),
                 minLength: {
                   value: 2,
-                  message: "City must be at least 2 characters",
+                  message: t("errors.cityMinLength"),
                 },
               })}
               id="city"
@@ -65,10 +65,10 @@ const StepThree: FC<StepProps> = ({ currentStep, changeStep, form }) => {
             {/* Address Input */}
             <Textarea
               {...register("location.address", {
-                required: "Address is required",
+                required: t("errors.addressRequired"),
                 minLength: {
                   value: 5,
-                  message: "Address must be at least 5 characters",
+                  message: t("errors.addressMinLength"),
                 },
               })}
               id="address"

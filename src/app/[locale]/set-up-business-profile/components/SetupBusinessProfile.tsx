@@ -20,7 +20,9 @@ const SetupBusinessProfile: FC<{
             <h1 className="text-xl md:text-2xl font-semibold !text-center">
               {t("title_1")}
             </h1>
-            <p className="md:text-base text-sm">{t("description")}</p>
+            <p className="md:text-base text-sm text-center">
+              <span>{t("description")}</span>
+            </p>
           </div>
 
           <div className="mt-10 space-y-4">

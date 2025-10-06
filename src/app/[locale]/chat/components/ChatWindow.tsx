@@ -1,5 +1,6 @@
 import { ChatMessage, ChatUser } from "@/src/types/messageTypes";
 import { FC, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   IoSend,
   IoAttach,
@@ -25,6 +26,7 @@ const ChatWindow: FC<ChatWindowProps> = ({
   showBackButton = false,
 }) => {
   const [messageInput, setMessageInput] = useState("");
+  const t = useTranslations("Chat");
 
   const viewRef = useRef<HTMLDivElement | null>(null);
 
@@ -66,10 +68,10 @@ const ChatWindow: FC<ChatWindowProps> = ({
             </svg>
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Select a conversation
+            <span>{t("selectConversation")}</span>
           </h3>
           <p className="text-gray-500 text-sm">
-            Choose a customer from the sidebar to start chatting.
+            <span>{t("chooseCustomer")}</span>
           </p>
         </div>
       </div>
@@ -81,7 +83,7 @@ const ChatWindow: FC<ChatWindowProps> = ({
       {/* Chat Header */}
       <div className="p-3 md:p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-3">
             {/* Back Button for Mobile */}
             {showBackButton && onBackToUserList && (
               <button
@@ -110,13 +112,18 @@ const ChatWindow: FC<ChatWindowProps> = ({
 
             {/* User Info */}
             <div className="min-w-0">
-              <h3 className="text-sm md:text-lg font-medium text-gray-900 truncate">
+              <h3 className="text-sm md:text-lg font-medium text-gray-900 truncate user-name">
                 {selectedUser.name}
               </h3>
               <p className="text-xs md:text-sm text-gray-500 truncate">
-                {selectedUser.isOnline
-                  ? "Online"
-                  : "Last seen " + selectedUser.timestamp}
+                {selectedUser.isOnline ? (
+                  <span>online</span>
+                ) : (
+                  <>
+                    <span>last Seen </span>
+                    <span className="date">{selectedUser.timestamp}</span>
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -145,7 +152,7 @@ const ChatWindow: FC<ChatWindowProps> = ({
 
       {/* Message Input */}
       <div className="p-3 md:p-4 border-t border-gray-200 bg-white">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-2">
           {/* Message Input */}
           <div className="flex-1 relative">
             <input
@@ -153,7 +160,7 @@ const ChatWindow: FC<ChatWindowProps> = ({
               value={messageInput}
               onChange={(e) => setMessageInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
+              placeholder={t("typeMessage")}
               className="w-full px-3 py-2 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
