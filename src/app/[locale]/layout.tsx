@@ -5,6 +5,8 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/src/i18n/routing";
+import Navbar from "@/src/components/UI/Navbar";
+import NavbarLayout from "@/src/components/layout/NavbarLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,13 +38,20 @@ export default async function RootLayout({ children, params }: Props) {
   // Load messages for the current locale
   const messages = await getMessages();
 
+  //  const pathname = usePathname();
+  //   const l = useTranslations("locale");
+
+  //   const hideNavbar =
+  //     OMIT_NAVBAR_ROUTES.some((route) => pathname.includes(route)) ||
+  //     pathname === `/${l("locale")}`;
+
   return (
     <html lang={locale} className="h-full" data-locale={locale}>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
       >
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <NavbarLayout>{children}</NavbarLayout>
         </NextIntlClientProvider>
       </body>
     </html>

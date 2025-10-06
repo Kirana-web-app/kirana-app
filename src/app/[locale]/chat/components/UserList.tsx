@@ -1,6 +1,9 @@
 import { ChatUser } from "@/src/types/messageTypes";
 import SearchBar from "@/src/components/UI/SearchBar";
 import { FC, useState } from "react";
+import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/src/constants/routes/routes";
 
 interface UserListProps {
   users: ChatUser[];
@@ -15,16 +18,23 @@ const UserList: FC<UserListProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
+  const router = useRouter();
+
   // Filter users based on search query
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
   return (
     <div className="w-full h-full bg-white border-r border-gray-200 flex flex-col">
       {/* Header */}
-      <div className="hidden md:block p-3 md:p-4 border-b border-gray-200">
+      <div className="flex items-center gap-2 p-3 md:p-4 border-b border-gray-200">
+        {/* Back Button */}
+        <button onClick={() => router.push(ROUTES.BAZAAR)} className="">
+          <MdOutlineArrowBackIosNew className="size-5" />
+        </button>
         <h2 className="text-lg md:text-xl font-semibold text-gray-900">
           Messages
         </h2>

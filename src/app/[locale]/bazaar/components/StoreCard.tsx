@@ -4,6 +4,8 @@ import Image from "next/image";
 import { MdDeliveryDining } from "react-icons/md";
 import { IoHeart, IoHeartOutline } from "react-icons/io5";
 import { Store } from "@/src/types/user";
+import Link from "next/link";
+import { ROUTES } from "@/src/constants/routes/routes";
 
 interface StoreCardProps {
   store: Store;
@@ -23,7 +25,7 @@ const StoreCard: FC<StoreCardProps> = ({
   };
 
   return (
-    <div className="">
+    <Link href={ROUTES.PROFILE.STORE(store.id)} className="">
       <div className="relative rounded-xl overflow-hidden">
         <Image
           src={store.profileImage}
@@ -68,7 +70,7 @@ const StoreCard: FC<StoreCardProps> = ({
           <p className="">{store.deliverySpeed ?? "New store"}</p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 export default StoreCard;

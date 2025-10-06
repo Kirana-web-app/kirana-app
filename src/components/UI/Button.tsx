@@ -3,7 +3,7 @@ import { classNames } from "../../utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "outline" | "ghost";
+  variant?: "primary" | "secondary" | "outline" | "ghost" | "destructive";
   size?: "sm" | "md" | "lg" | "padding_0";
   fullWidth?: boolean;
   asChild?: boolean;
@@ -21,6 +21,8 @@ const getVariantClasses = (
     outline:
       "border-2 border-primary text-primary bg-transparent hover:bg-primary hover:text-white focus-visible:ring-primary",
     ghost: "text-primary hover:bg-primary/10 focus-visible:ring-primary",
+    destructive:
+      "bg-red-100 border border-red-600 text-red-600 hover:bg-red-200 focus-visible:ring-red-500",
   };
   return variants[variant];
 };

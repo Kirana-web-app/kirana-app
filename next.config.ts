@@ -3,7 +3,7 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ["kirana-app-nine.vercel.app"],
+    domains: ["kirana-app-nine.vercel.app", "plus.unsplash.com"],
   },
 };
 
