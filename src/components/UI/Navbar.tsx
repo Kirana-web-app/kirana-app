@@ -6,6 +6,7 @@ import { CiShoppingBasket } from "react-icons/ci";
 import { CiUser } from "react-icons/ci";
 import Link from "next/link";
 import { Button } from "./Button";
+import useAuthStore from "@/src/stores/authStore";
 
 const navLinks = [
   {
@@ -29,6 +30,10 @@ const profileLink = {
 };
 
 const Navbar = () => {
+  const { user, authLoading } = useAuthStore();
+
+  if (authLoading) return null;
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 lg:top-0 lg:bottom-auto bg-white py-1 border-t lg:border-t-0 lg:border-b border-gray-200 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -73,16 +78,21 @@ const Navbar = () => {
             </div>
           </div>
           <div className="hidden lg:flex lg:items-center lg:space-x-4 shrink-0">
-            <Link
-              href={profileLink.href}
-              className="text-gray-900 hover:text-primary font-medium flex-col flex justify-between text-center"
-            >
-              <div className="w-fit mx-auto scale-110">{profileLink.icon}</div>
-              <p className="text-xs">{profileLink.label}</p>
-            </Link>
-            <Button size="padding_0" className="py-2 px-6">
-              Sign In
-            </Button>
+            {user ? (
+              <Link
+                href={profileLink.href}
+                className="text-gray-900 hover:text-primary font-medium flex-col flex justify-between text-center"
+              >
+                <div className="w-fit mx-auto scale-110">
+                  {profileLink.icon}
+                </div>
+                <p className="text-xs">{profileLink.label}</p>
+              </Link>
+            ) : (
+              <Button size="padding_0" className="py-2 px-6">
+                Sign In
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -1,5 +1,17 @@
 import { UseFormReturn } from "react-hook-form";
-import { BusinessProfileFormData } from "../app/[locale]/set-up-business-profile/page";
+
+export interface BusinessProfileFormData {
+  ownerName: string;
+  businessType: string;
+  location: {
+    country: string;
+    city: string;
+    address: string;
+    // geolocation?: { latitude: number; longitude: number };
+  };
+  storeName?: string;
+  businessProfileImage: File;
+}
 
 export interface StepProps {
   currentStep: number;

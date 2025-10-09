@@ -1,9 +1,11 @@
+import { FieldValue, Timestamp } from "firebase/firestore";
 import { Store } from "../types/user";
 
 export const store: Store[] = [
   {
     id: "1",
-    name: "John's Electronics Malang",
+    storeName: "John's Electronics Malang",
+    fullName: "John Doe",
     email: "john@example.com",
     role: "store",
     defaultLanguage: "en",
@@ -37,10 +39,13 @@ export const store: Store[] = [
         date: "2023-01-02",
       },
     ],
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   },
   {
     id: "2",
-    name: "Fresh Mart",
+    storeName: "Fresh Mart",
+    fullName: "Ali bhai",
     email: "fresh@example.com",
     type: "Catering services",
     role: "store",
@@ -53,10 +58,12 @@ export const store: Store[] = [
       city: "Karachi",
       addressLine: "North Nazimabad, Block J, Street 12, Near Majid-e-Ashraf",
     },
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   },
   {
     id: "3",
-    name: "Style Hub",
+    fullName: "Ramish Khan",
     email: "style@example.com",
     role: "store",
     defaultLanguage: "en",
@@ -71,5 +78,7 @@ export const store: Store[] = [
       city: "Karachi",
       addressLine: "North Nazimabad, Block J, Street 12, Near Majid-e-Ashraf",
     },
+    createdAt: Timestamp.now(),
+    updatedAt: Timestamp.now(),
   },
 ];

@@ -10,11 +10,15 @@ import { FC, useState } from "react";
 import { GoBookmark } from "react-icons/go";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import useAuthStore from "@/src/stores/authStore";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 
 const CustomerProfile: FC<{
   userData: Customer;
   handleBackClick: () => void;
 }> = ({ userData, handleBackClick }) => {
+  const { logOut, authLoading } = useAuthStore();
+
   const [user, setUser] = useState(userData);
   const router = useRouter();
   const t = useTranslations("CustomerProfile");
@@ -38,6 +42,17 @@ const CustomerProfile: FC<{
     },
   ];
 
+  const handleLogOut = async () => {
+    try {
+      await logOut();
+      router.push(ROUTES.AUTH.LOGIN);
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
+  if (authLoading) return <LoadingSpinner className="mt-80" />;
+
   return (
     <div className="py-6">
       <div className="mx-auto max-w-2xl">
@@ -51,15 +66,21 @@ const CustomerProfile: FC<{
         <div className="py-4 ">
           <div className="px-4 space-y-6 w-full">
             <div className=" flex items-center gap-4">
-              <Image
-                src={user.profileImage}
-                alt={`${user.name}'s profile picture`}
-                className="rounded-full w-16 h-16 object-cover"
-                width={64}
-                height={64}
-              />
+              <div className="w-16 h-16 bg-gray-100 rounded-full overflow-hidden">
+                {user.profileImage && (
+                  <Image
+                    src={user.profileImage}
+                    alt={`${user.fullName}'s profile picture`}
+                    className="rounded-full w-16 h-16 object-cover"
+                    width={64}
+                    height={64}
+                  />
+                )}
+              </div>
               <div className="">
-                <h2 className="font-bold text-2xl user-name">{user.name}</h2>
+                <h2 className="font-bold text-2xl user-name">
+                  {user.fullName}
+                </h2>
                 <p className="user-email">{user.email}</p>
               </div>
             </div>
@@ -115,7 +136,7 @@ const CustomerProfile: FC<{
               />
             </div>
             <div className="">
-              <Button fullWidth variant="destructive">
+              <Button fullWidth variant="destructive" onClick={handleLogOut}>
                 {t("logOut")}
               </Button>
             </div>

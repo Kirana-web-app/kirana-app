@@ -2,11 +2,11 @@ import { Button } from "@/src/components/UI/Button";
 import { useTranslations } from "next-intl";
 import { FC, useRef, useState, useEffect } from "react";
 import { UseFormReturn, Controller } from "react-hook-form";
-import { BusinessProfileFormData } from "../page";
+
 import ProgressBar from "./ProgressBar";
 import { IoCloudUploadOutline, IoImageOutline } from "react-icons/io5";
 import Image from "next/image";
-import { StepProps } from "@/src/types/profileSetup";
+import { BusinessProfileFormData, StepProps } from "@/src/types/profileSetup";
 
 const StepFive: FC<StepProps> = ({ currentStep, changeStep, form }) => {
   const t = useTranslations("StepFive");

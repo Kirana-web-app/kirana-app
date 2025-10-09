@@ -1,29 +1,64 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { Button } from "../../../../components/UI/Button";
 import { Input } from "../../../../components/UI/Input";
 import { ROUTES } from "../../../../constants/routes/routes";
 import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import useAuthStore from "@/src/stores/authStore";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { useRouter } from "next/navigation";
+import { getFirebaseErrorMessage } from "@/src/constants/authErrors";
 
 interface LoginFormData {
   email: string;
   password: string;
+  role: "customer" | "store";
 }
 
 const LoginPage: FC = () => {
+  const { logIn, authLoading, user } = useAuthStore();
+  const [authError, setAuthError] = useState<string>("");
+
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>();
+  } = useForm<LoginFormData>({ defaultValues: { role: "customer" } });
 
-  const onSubmit = (data: LoginFormData) => {
-    // Handle login logic here
+  useEffect(() => {
+    if (user) {
+      router.push(ROUTES.BAZAAR);
+    }
+  }, [user, router]);
+
+  const onSubmit = async (data: LoginFormData) => {
+    // Clear any previous errors
+    setAuthError("");
+
     console.log("Login attempt:", data);
+
+    try {
+      await logIn(data.email, data.password, data.role);
+      router.push(ROUTES.BAZAAR);
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      // Handle Firebase errors
+      if (error?.code) {
+        setAuthError(getFirebaseErrorMessage(error.code));
+      } else if (error?.message) {
+        setAuthError(error.message);
+      } else {
+        setAuthError("An unexpected error occurred. Please try again.");
+      }
+    }
   };
+
+  if (authLoading) return <LoadingSpinner heightScreen />;
 
   return (
     <div className="h-svh flex flex-col gap-6 ">
@@ -47,6 +82,87 @@ const LoginPage: FC = () => {
       <div className="flex-1 flex flex-col max-w-lg mx-auto w-full overflow-y-auto ">
         <div className="flex-1 flex flex-col justify-start sm:justify-center py-4 px-4">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Error Message Display */}
+            {authError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg
+                      className="h-5 w-5 text-red-400"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-red-700">{authError}</p>
+                  </div>
+                  <div className="ml-auto pl-3">
+                    <div className="-mx-1.5 -my-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setAuthError("")}
+                        className="inline-flex bg-red-50 rounded-md p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-red-50 focus:ring-red-600"
+                      >
+                        <span className="sr-only">Dismiss</span>
+                        <svg
+                          className="h-3 w-3"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Role Selection */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="relative">
+                  <input
+                    {...register("role", { required: "Please select a role" })}
+                    type="radio"
+                    value="customer"
+                    className="sr-only peer"
+                  />
+                  <div className="flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:border-gray-300 transition-colors">
+                    <span className="text-sm font-medium text-gray-700 peer-checked:text-primary">
+                      Customer
+                    </span>
+                  </div>
+                </label>
+                <label className="relative">
+                  <input
+                    {...register("role", { required: "Please select a role" })}
+                    type="radio"
+                    value="store"
+                    className="sr-only peer"
+                  />
+                  <div className="flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:border-gray-300 transition-colors">
+                    <span className="text-sm font-medium text-gray-700 peer-checked:text-primary">
+                      Store Owner
+                    </span>
+                  </div>
+                </label>
+              </div>
+              {errors.role && (
+                <p className="text-sm text-red-600">{errors.role.message}</p>
+              )}
+            </div>
+
             {/* Email Input */}
             <Input
               {...register("email", {

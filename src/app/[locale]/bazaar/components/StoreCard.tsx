@@ -47,13 +47,17 @@ const StoreCard: FC<StoreCardProps> = ({
   return (
     <Link href={ROUTES.PROFILE.STORE(store.id)} className="">
       <div className="relative rounded-xl overflow-hidden">
-        <Image
-          src={store.profileImage}
-          alt={"store img"}
-          className="w-full h-56 object-cover"
-          width={400}
-          height={128}
-        />
+        <div className="h-56 w-full bg-gray-100">
+          {store.profileImage && (
+            <Image
+              src={store.profileImage}
+              alt={"store img"}
+              className="w-full h-56 object-cover"
+              width={400}
+              height={128}
+            />
+          )}
+        </div>
         {/* Save/Unsave Button */}
         <button
           onClick={handleToggleSave}
@@ -68,7 +72,7 @@ const StoreCard: FC<StoreCardProps> = ({
       </div>
       <div className="py-4 px-2">
         <h3 className="text-lg font-semibold line-clamp-2 mb-1 store-name">
-          {store.name}
+          {store.storeName ?? store.ownerName}
         </h3>
         <p className="text-gray-600 text-sm store-type">
           {getTranslatedBusinessType(store.type)}

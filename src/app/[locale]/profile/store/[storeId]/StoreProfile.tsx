@@ -47,13 +47,15 @@ const StoreProfile: FC<{
             <div className="relative">
               <div className="h-80 w-full relative">
                 <div className="bg-linear-0 from-black/50 to-black/0 absolute inset-0"></div>
-                <Image
-                  src={user.profileImage}
-                  alt={`${user.name}'s profile picture`}
-                  className="w-full h-full object-cover"
-                  width={576}
-                  height={576}
-                />
+                {user.profileImage && (
+                  <Image
+                    src={user.profileImage}
+                    alt={`${user.storeName ?? user.fullName}'s profile picture`}
+                    className="w-full h-full object-cover"
+                    width={576}
+                    height={576}
+                  />
+                )}
               </div>
 
               {/* Back Button */}
@@ -66,7 +68,9 @@ const StoreProfile: FC<{
                 </button>
               </div>
               <div className="absolute bottom-6 left-6 text-white space-y-2 w-80">
-                <h2 className="font-bold text-2xl store-name">{user.name}</h2>
+                <h2 className="font-bold text-2xl store-name">
+                  {user.storeName ?? user.ownerName}
+                </h2>
                 <p className="user-email">{user.email}</p>
               </div>
             </div>

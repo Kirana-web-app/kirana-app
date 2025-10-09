@@ -1,3 +1,9 @@
+import { FieldValue, Timestamp } from "firebase/firestore";
+
+export type UserRole = "user" | "customer" | "store";
+
+export type UType = Store | Customer;
+
 export interface Location {
   latitude: number;
   longitude: number;
@@ -14,17 +20,20 @@ export interface Review {
 
 export interface User {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
-  profileImage: string;
-  role: "customer" | "store";
+  profileImage?: string | null;
+  role: UserRole;
   defaultLanguage: "en" | "ur";
   readReceipts: boolean;
+  createdAt: FieldValue | Timestamp;
+  updatedAt: FieldValue | Timestamp;
+  profileCreated?: boolean;
 }
 
 export interface Store extends User {
-  storeName?: string;
-
+  ownerName: string;
+  storeName?: string | null;
   type: string;
   rating?: number;
   deliverySpeed?: string;
@@ -41,5 +50,5 @@ export interface Address {
   country: string;
   city: string;
   addressLine: string;
-  location?: Location;
+  location?: Location | null;
 }
