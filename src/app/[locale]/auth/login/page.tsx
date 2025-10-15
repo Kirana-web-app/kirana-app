@@ -42,7 +42,7 @@ const LoginPage: FC = () => {
     console.log("Login attempt:", data);
 
     try {
-      await logIn(data.email, data.password, data.role);
+      await logIn(data.email, data.password);
       router.push(ROUTES.BAZAAR);
     } catch (error: any) {
       console.error("Login error:", error);
@@ -127,41 +127,6 @@ const LoginPage: FC = () => {
                 </div>
               </div>
             )}
-
-            {/* Role Selection */}
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-3">
-                <label className="relative">
-                  <input
-                    {...register("role", { required: "Please select a role" })}
-                    type="radio"
-                    value="customer"
-                    className="sr-only peer"
-                  />
-                  <div className="flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:border-gray-300 transition-colors">
-                    <span className="text-sm font-medium text-gray-700 peer-checked:text-primary">
-                      Customer
-                    </span>
-                  </div>
-                </label>
-                <label className="relative">
-                  <input
-                    {...register("role", { required: "Please select a role" })}
-                    type="radio"
-                    value="store"
-                    className="sr-only peer"
-                  />
-                  <div className="flex items-center justify-center px-4 py-3 border-2 border-gray-200 rounded-lg cursor-pointer peer-checked:border-primary peer-checked:bg-primary/5 hover:border-gray-300 transition-colors">
-                    <span className="text-sm font-medium text-gray-700 peer-checked:text-primary">
-                      Store Owner
-                    </span>
-                  </div>
-                </label>
-              </div>
-              {errors.role && (
-                <p className="text-sm text-red-600">{errors.role.message}</p>
-              )}
-            </div>
 
             {/* Email Input */}
             <Input

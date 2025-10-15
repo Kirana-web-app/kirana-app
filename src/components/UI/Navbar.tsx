@@ -7,6 +7,7 @@ import { CiUser } from "react-icons/ci";
 import Link from "next/link";
 import { Button } from "./Button";
 import useAuthStore from "@/src/stores/authStore";
+import { IoLogInOutline } from "react-icons/io5";
 
 const navLinks = [
   {
@@ -23,14 +24,13 @@ const navLinks = [
   },
 ];
 
-const profileLink = {
-  label: "Profile",
-  href: ROUTES.PROFILE.USER("user123"), // Default to user profile, can be dynamic later
-  icon: <CiUser className="size-6" />,
-};
-
 const Navbar = () => {
-  const { user, authLoading } = useAuthStore();
+  const { user, userData, authLoading } = useAuthStore();
+
+  const profileLink = {
+    label: "Profile",
+    icon: <CiUser className="size-6" />,
+  };
 
   if (authLoading) return null;
 
@@ -50,13 +50,27 @@ const Navbar = () => {
                 <span className="text-sm mt-1">{nav.label}</span>
               </Link>
             ))}
-            <Link
-              href={profileLink.href}
-              className="flex flex-col items-center text-gray-500 hover:text-primary"
-            >
-              {profileLink.icon}
-              <span className="text-sm mt-1">{profileLink.label}</span>
-            </Link>
+            {userData ? (
+              <Link
+                href={
+                  userData.role === "customer"
+                    ? ROUTES.PROFILE.USER(userData.id)
+                    : ROUTES.PROFILE.STORE(userData.id)
+                }
+                className="flex flex-col items-center text-gray-500 hover:text-primary"
+              >
+                {profileLink.icon}
+                <span className="text-sm mt-1">{profileLink.label}</span>
+              </Link>
+            ) : (
+              <Link
+                href={ROUTES.AUTH.LOGIN}
+                className="flex flex-col items-center text-primary hover:text-primary"
+              >
+                <IoLogInOutline className="size-6" />
+                <span className="text-sm mt-1">Log In</span>
+              </Link>
+            )}
           </div>
 
           {/* Desktop Navigation - Top */}
@@ -78,9 +92,13 @@ const Navbar = () => {
             </div>
           </div>
           <div className="hidden lg:flex lg:items-center lg:space-x-4 shrink-0">
-            {user ? (
+            {userData ? (
               <Link
-                href={profileLink.href}
+                href={
+                  userData.role === "customer"
+                    ? ROUTES.PROFILE.USER(userData.id)
+                    : ROUTES.PROFILE.STORE(userData.id)
+                }
                 className="text-gray-900 hover:text-primary font-medium flex-col flex justify-between text-center"
               >
                 <div className="w-fit mx-auto scale-110">
@@ -89,9 +107,12 @@ const Navbar = () => {
                 <p className="text-xs">{profileLink.label}</p>
               </Link>
             ) : (
-              <Button size="padding_0" className="py-2 px-6">
-                Sign In
-              </Button>
+              <Link
+                className="px-5 py-2 text-sm bg-primary text-white hover:bg-primary/60 focus-visible:ring-primary inline-flex items-center justify-center whitespace-nowrap rounded-full font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 cursor-pointer duration-200"
+                href={ROUTES.AUTH.LOGIN}
+              >
+                Log In
+              </Link>
             )}
           </div>
         </div>

@@ -119,6 +119,13 @@ const SetUpBusinessProfilePage: FC = () => {
   }, [userData]);
 
   const onSubmit = async (data: BusinessProfileFormData) => {
+    // Only allow submission on the final step (step 6)
+    if (currentStep !== 6) {
+      // Prevent submission and move to next step instead
+      changeStep(currentStep + 1);
+      return;
+    }
+
     // Clear localStorage on successful submission
     if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY);

@@ -74,6 +74,7 @@
   "CustomerProfile": {
     "title": "پروفائل",
     "editProfile": "پروفائل میں تبدیلی کریں",
+    "chatWithCustomer": "گاہک سے بات چیت کریں",
     "saved": "محفوظ شدہ",
     "settings": "سیٹنگز",
     "defaultLanguage": "ڈیفالٹ زبان",
@@ -86,10 +87,18 @@
   "StoreProfile": {
     "editProfile": "پروفائل میں تبدیلی کریں",
     "storeRating": "اسٹور کی درجہ بندی",
+    "chatWithSeller": "بیچنے والے سے بات چیت کریں",
     "deliveryRate": "ڈیلیوری کی رفتار",
     "address": "پتہ",
     "reviews": "جائزے",
+    "rating": "درجہ بندی",
+    "deliverySpeed": "ان کی ڈیلیوری کتنی تیز تھی؟",
+    "submitReview": "جائزہ جمع کروائیں",
+    "leaveReview": "جائزہ چھوڑیں",
+    "giveReview": "جائزہ دیں",
     "noReviews": "ابھی تک کوئی جائزہ نہیں۔",
+    "writeReviewPlaceholder": "اپنا جائزہ لکھیں...",
+    "submittingReview": "جمع کرایا جا رہا ہے...",
     "settings": "سیٹنگز",
     "defaultLanguage": "ڈیفالٹ زبان",
     "selectLanguage": "زبان منتخب کریں",
@@ -130,7 +139,7 @@
     "noSavedStores": "ابھی تک کوئی دکان محفوظ نہیں کی گئی",
     "noStoresNearby": "قریب کوئی دکان نہیں",
     "adjustFilters": "مزید نتائج دیکھنے کے لیے اپنے تلاش کے معیار کو ایڈجسٹ کریں یا کچھ فلٹرز صاف کریں۔",
-    "saveStoresMessage": "اپنی پسندیدہ دکانوں کو یہاں دیکھنے کے لیے محفوظ کریں۔ سٹور کارڈز پر دل کے آئیکن کو تلاش کریں۔",
-    "expandSearch": "ہم آپ کے علاقے میں کوئی دکان نہیں مل سکی۔ اپنے تلاش کے دائرے کو بڑھانے کی کوشش کریں یا بعد میں واپس آئیں۔"
+    "saveStoresMessage": "اپنی پسندیدہ دکانوں کو یہاں دیکھنے کے لیے محفوظ کریں۔",
+    "expandSearch": "ہم آپ کے علاقے میں کوئی دکان نہیں مل سکی۔"
   }
 }

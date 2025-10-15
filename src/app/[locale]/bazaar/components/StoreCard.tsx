@@ -11,6 +11,7 @@ import {
   businessTypesUrdu,
 } from "@/src/data/businessTypes";
 import { GoBookmark, GoBookmarkFill } from "react-icons/go";
+import { deliveryRate } from "@/src/constants/deliverySpeeds";
 
 interface StoreCardProps {
   store: Store;
@@ -78,14 +79,16 @@ const StoreCard: FC<StoreCardProps> = ({
           {getTranslatedBusinessType(store.type)}
         </p>
         <div className="text-primary">
-          {store.rating ? (
+          {store.avgRating ? (
             <div className="">
               {[1, 2, 3, 4, 5].map((key) => (
                 <span key={key} className="text-xl">
-                  {key <= Math.floor(store.rating ?? 0) ? "★" : "☆"}{" "}
+                  {key <= Math.floor(store.avgRating ?? 0) ? "★" : "☆"}{" "}
                 </span>
               ))}
-              <p className="font-semibold text-sm rating">({store.rating})</p>
+              <p className="font-semibold text-sm rating">
+                ({store.avgRating})
+              </p>
             </div>
           ) : (
             <span className="text-gray-400 text-sm">
@@ -96,8 +99,14 @@ const StoreCard: FC<StoreCardProps> = ({
         <div className="flex items-center gap-1">
           <MdDeliveryDining className="size-5 text-primary" />
           <p className="delivery-speed">
-            {store.deliverySpeed ? (
-              <span className="delivery-speed">{store.deliverySpeed}</span>
+            {store.avgDeliverySpeed ? (
+              <span className="delivery-speed">
+                {
+                  deliveryRate[
+                    store.avgDeliverySpeed as unknown as keyof typeof deliveryRate
+                  ]
+                }
+              </span>
             ) : (
               <span data-translated>{t("newStore")}</span>
             )}

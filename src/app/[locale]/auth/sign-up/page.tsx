@@ -48,7 +48,7 @@ const SignUpPage: FC = () => {
     console.log("Signup attempt:", data);
 
     try {
-      await signUp(data.fullName, data.email, data.password);
+      await signUp(data.fullName, data.email, data.password, data.phoneNumber);
       router.push(ROUTES.SET_LANGUAGE);
     } catch (error: any) {
       console.error("Signup error:", error);

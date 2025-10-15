@@ -4,6 +4,10 @@ export type UserRole = "user" | "customer" | "store";
 
 export type UType = Store | Customer;
 
+export interface DeliverySpeed {
+  deliverySpeed: "1" | "2" | "3" | "4" | "5" | null; // 1 to 5
+}
+
 export interface Location {
   latitude: number;
   longitude: number;
@@ -15,13 +19,16 @@ export interface Review {
   userName: string;
   rating: number; // 1 to 5
   comment: string;
-  date: string;
+  deliverySpeed?: DeliverySpeed | null;
+  createdAt: FieldValue | Timestamp;
+  updatedAt: FieldValue | Timestamp;
 }
 
 export interface User {
   id: string;
   fullName: string;
   email: string;
+  phoneNumber?: string | null;
   profileImage?: string | null;
   role: UserRole;
   defaultLanguage: "en" | "ur";
@@ -35,8 +42,8 @@ export interface Store extends User {
   ownerName: string;
   storeName?: string | null;
   type: string;
-  rating?: number;
-  deliverySpeed?: string;
+  avgRating?: number;
+  avgDeliverySpeed?: DeliverySpeed | null;
   address: Address;
   reviews?: Review[];
 }

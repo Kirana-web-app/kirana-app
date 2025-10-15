@@ -8,6 +8,7 @@ import { routing } from "@/src/i18n/routing";
 import Navbar from "@/src/components/UI/Navbar";
 import NavbarLayout from "@/src/components/layout/NavbarLayout";
 import InitAuth from "@/src/components/auth/InitAuth";
+import { ReactQueryClientProvider } from "@/src/components/auth/react-query/ReactQueryClientProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,16 +41,18 @@ export default async function RootLayout({ children, params }: Props) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className="h-full" data-locale={locale}>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
-      >
-        <InitAuth />
+    <ReactQueryClientProvider>
+      <html lang={locale} className="h-full" data-locale={locale}>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} antialiased h-full`}
+        >
+          <InitAuth />
 
-        <NextIntlClientProvider messages={messages}>
-          <NavbarLayout>{children}</NavbarLayout>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+          <NextIntlClientProvider messages={messages}>
+            <NavbarLayout>{children}</NavbarLayout>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+    </ReactQueryClientProvider>
   );
 }

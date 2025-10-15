@@ -20,7 +20,8 @@ export const createUser = async (
   fullName: string,
   email: string,
   password: string,
-  role: UserRole
+  role: UserRole,
+  phoneNumber?: string
 ): Promise<UserCredential> => {
   try {
     const userCredential: UserCredential = await createUserWithEmailAndPassword(
@@ -34,6 +35,7 @@ export const createUser = async (
       email: userCredential.user.email!,
       fullName,
       role,
+      phoneNumber: phoneNumber || null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       defaultLanguage: "en",

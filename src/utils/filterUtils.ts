@@ -9,7 +9,9 @@ export const filterStores = (
     // Search query filter
     if (filters.searchQuery.trim()) {
       const searchTerm = filters.searchQuery.toLowerCase();
-      const matchesName = store.name.toLowerCase().includes(searchTerm);
+      const matchesName =
+        store.ownerName.toLowerCase().includes(searchTerm) ||
+        (store.storeName && store.storeName.toLowerCase().includes(searchTerm));
       const matchesType = store.type.toLowerCase().includes(searchTerm);
       if (!matchesName && !matchesType) {
         return false;
@@ -25,14 +27,14 @@ export const filterStores = (
 
     // Delivery rate filter
     if (filters.selectedDeliveryRate) {
-      if (store.deliverySpeed !== filters.selectedDeliveryRate) {
+      if (store.avgDeliverySpeed != (filters.selectedDeliveryRate as any)) {
         return false;
       }
     }
 
     // Rating filter
     if (filters.selectedRating > 0) {
-      const storeRating = store.rating || 0;
+      const storeRating = store.avgRating || 0;
       if (storeRating < filters.selectedRating) {
         return false;
       }

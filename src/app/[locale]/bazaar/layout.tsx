@@ -37,7 +37,6 @@ import { useTranslations } from "next-intl";
 const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // Zustand store
   const {
     searchQuery,
     selectedBusinessTypes,
@@ -55,11 +54,11 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const l = useTranslations("locale");
 
   const deliveryRate = [
-    { id: 1, name: t("quickDelivery"), value: "Quick" },
-    { id: 2, name: t("fastDelivery"), value: "Fast" },
-    { id: 3, name: t("averageDelivery"), value: "Average" },
-    { id: 4, name: t("slowDelivery"), value: "Slow" },
-    { id: 5, name: t("slowestDelivery"), value: "Slowest" },
+    { id: 1, name: t("quickDelivery"), value: "1" },
+    { id: 2, name: t("fastDelivery"), value: "2" },
+    { id: 3, name: t("averageDelivery"), value: "3" },
+    { id: 4, name: t("slowDelivery"), value: "4" },
+    { id: 5, name: t("slowestDelivery"), value: "5" },
   ];
 
   const handleRatingClick = (rating: number) => {

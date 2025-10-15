@@ -24,13 +24,10 @@ type Action = {
   signUp: (
     fullName: string,
     email: string,
-    password: string
-  ) => Promise<UserCredential>;
-  logIn: (
-    email: string,
     password: string,
-    role: UserRole
+    phoneNumber?: string
   ) => Promise<UserCredential>;
+  logIn: (email: string, password: string) => Promise<UserCredential>;
   logOut: () => Promise<void>;
 };
 
@@ -65,7 +62,7 @@ const useAuthStore = create<State & Action>((set) => ({
     });
     return unsub;
   },
-  signUp: async (fullName, email, password) => {
+  signUp: async (fullName, email, password, phoneNumber) => {
     set({ authLoading: true });
 
     try {
@@ -73,7 +70,8 @@ const useAuthStore = create<State & Action>((set) => ({
         fullName,
         email,
         password,
-        "user"
+        "user",
+        phoneNumber
       );
 
       // Force token refresh to get updated custom claims
@@ -96,7 +94,7 @@ const useAuthStore = create<State & Action>((set) => ({
     }
   },
 
-  logIn: async (email: string, password: string, role: UserRole) => {
+  logIn: async (email: string, password: string) => {
     set({ authLoading: true });
     try {
       const userCredential = await signInWithEmailAndPassword(

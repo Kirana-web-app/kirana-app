@@ -51,7 +51,7 @@ const RadioButton = <T extends string>({
         className="ml-3 text-base font-medium text-gray-900 cursor-pointer"
         onClick={() => onChange(value)}
       >
-        {label}
+        <span data-translated>{label}</span>
       </label>
     </div>
   );
