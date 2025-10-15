@@ -1,5 +1,5 @@
 "use client";
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, use } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import SetupBusinessProfile from "./components/SetupBusinessProfile";
 import StepOne from "./components/StepOne";
@@ -14,23 +14,16 @@ import { useTranslations } from "next-intl";
 import { classNames } from "@/src/utils";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/src/constants/routes/routes";
-
-export interface BusinessProfileFormData {
-  ownerName: string;
-  businessType: string;
-  location: {
-    country: string;
-    city: string;
-    address: string;
-    // geolocation?: { latitude: number; longitude: number };
-  };
-  storeName?: string;
-  businessProfileImage: File;
-}
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { BusinessProfileFormData } from "@/src/types/profileSetup";
+import { createStoreProfile } from "@/src/utils/users";
+import useAuthStore from "@/src/stores/authStore";
 
 const SetUpBusinessProfilePage: FC = () => {
+  const { user, userData } = useAuthStore();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const t = useTranslations("SetUpBusinessProfile");
 
@@ -119,15 +112,43 @@ const SetUpBusinessProfilePage: FC = () => {
     return () => subscription.unsubscribe();
   }, [form, currentStep, isLoaded]);
 
-  const onSubmit = (data: BusinessProfileFormData) => {
-    console.log("Form submitted:", data);
+  useEffect(() => {
+    if (userData?.profileCreated) {
+      router.push(ROUTES.PROFILE.STORE(user!.uid));
+    }
+  }, [userData]);
+
+  const onSubmit = async (data: BusinessProfileFormData) => {
+    // Only allow submission on the final step (step 6)
+    if (currentStep !== 6) {
+      // Prevent submission and move to next step instead
+      changeStep(currentStep + 1);
+      return;
+    }
+
     // Clear localStorage on successful submission
     if (typeof window !== "undefined") {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(STEP_KEY);
     }
+
     // Handle form submission logic here
-    router.push(ROUTES.PROFILE.STORE("1"));
+    console.log("Form submitted:", data);
+
+    if (!user) {
+      console.error("No user found. Cannot create store profile.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await createStoreProfile(user.uid, data);
+      router.push(ROUTES.PROFILE.STORE(user.uid));
+    } catch (error) {
+      console.error("Error creating store profile:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Generic changeStep function with step-specific validation
@@ -220,16 +241,11 @@ const SetUpBusinessProfilePage: FC = () => {
 
   const totalSteps = steps.length;
 
+  if (isSubmitting) return <LoadingSpinner heightScreen />;
+
   // Show loading state until data is loaded from localStorage
   if (!isLoaded) {
-    return (
-      <div className="min-h-svh flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner heightScreen />;
   }
 
   return (

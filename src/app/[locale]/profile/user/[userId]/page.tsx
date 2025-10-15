@@ -1,24 +1,44 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { FC, useState } from "react";
-import { user_profile } from "@/src/data/mockProfile";
-import { Customer } from "@/src/types/user";
+import { FC } from "react";
 import CustomerProfile from "./CustomerProfile";
+import useAuthStore from "@/src/stores/authStore";
+import { useQuery } from "@tanstack/react-query";
+import { getCustomer } from "@/src/utils/users";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { ROUTES } from "@/src/constants/routes/routes";
 
 const UserProfilePage: FC = () => {
+  const { user, userData, authLoading } = useAuthStore();
+
   const { userId } = useParams() as { userId: string };
   const router = useRouter();
-  const [user, setUser] = useState<Customer>(user_profile);
+  // const [customer, setCustomer] = useState<Customer>(user_profile);
+  const userAuthenticated = userData?.id === userId;
+
+  const { data: customer, isLoading } = useQuery({
+    queryKey: [`customer_${userId}`],
+    queryFn: () => getCustomer(userId),
+    staleTime: "static",
+  });
 
   const handleBackClick = () => {
-    router.back();
+    router.push(ROUTES.BAZAAR);
   };
 
-  if (!user) {
+  if (authLoading || isLoading) return <LoadingSpinner heightScreen />;
+
+  if (!customer) {
     return <div>User not found</div>;
   }
 
-  return <CustomerProfile handleBackClick={handleBackClick} userData={user} />;
+  return (
+    <CustomerProfile
+      handleBackClick={handleBackClick}
+      userData={customer}
+      userAuthenticated={userAuthenticated}
+    />
+  );
 };
 
 export default UserProfilePage;

@@ -7,10 +7,13 @@ import { ROUTES } from "@/src/constants/routes/routes";
 import { RadioButton } from "@/src/components/UI/RadioButton";
 import { Button } from "@/src/components/UI/Button";
 import { Link } from "@/src/i18n/navigation";
+import { updateStore } from "@/src/utils/users";
+import useAuthStore from "@/src/stores/authStore";
 
 type Language = "en" | "ur";
 
 const SetLanguagePage: FC = () => {
+  const { user } = useAuthStore();
   const { locale } = useParams() as { locale: Language };
 
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
@@ -23,9 +26,13 @@ const SetLanguagePage: FC = () => {
 
   const router = useRouter();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Handle language selection logic here
     console.log("Selected language:", selectedLanguage);
+    if (!user) return;
+
+    await updateStore(user.uid, { defaultLanguage: selectedLanguage });
+
     // You can redirect to home or next page here
     router.push(ROUTES.SET_UP_BUSINESS_PROFILE);
   };

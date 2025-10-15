@@ -1,15 +1,46 @@
-import { Dispatch, FC, SetStateAction } from "react";
+import { Dispatch, FC, SetStateAction, useEffect } from "react";
 import SetUpBusinessProfileImg from "@/src/assets/images/set-up-business-profile.jpg";
 import { Button } from "@/src/components/UI/Button";
 import { ROUTES } from "@/src/constants/routes/routes";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { updateRole } from "@/src/utils/users";
+import { UserRole } from "@/src/types/user";
+import useAuthStore from "@/src/stores/authStore";
+import { useRouter } from "next/navigation";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 
 const SetupBusinessProfile: FC<{
   setupProfile: Dispatch<SetStateAction<number>>;
 }> = ({ setupProfile }) => {
+  const { user, userData, authLoading } = useAuthStore();
   const t = useTranslations("SetUpBusinessProfile");
+  const router = useRouter();
+
+  const handleRoleUpdate = async (role: UserRole) => {
+    if (!user) return;
+    if (role === "store") {
+      await updateRole(user.uid, "store");
+      setupProfile(1);
+    }
+    if (role === "customer") {
+      await updateRole(user.uid, "customer");
+      router.push(ROUTES.BAZAAR);
+    }
+  };
+
+  console.log(user, userData);
+
+  // useEffect(() => {
+  //   if (user) {
+  //     router.push(ROUTES.BAZAAR);
+  //   }
+  // }, [user, router]);
+
+  if (authLoading) return <LoadingSpinner heightScreen />;
+
+  if (!user) return null;
 
   return (
     <div className="flex flex-wrap-reverse content-end">
@@ -30,17 +61,17 @@ const SetupBusinessProfile: FC<{
               variant="primary"
               size="md"
               fullWidth
-              onClick={() => setupProfile(1)}
+              onClick={() => handleRoleUpdate("store")}
             >
-              {t("button-primary")}
+              {t("yes")}
             </Button>
-            <Button variant="secondary" size="padding_0" fullWidth asChild>
-              <Link
-                href={ROUTES.AUTH.SIGN_UP}
-                className="w-full h-full text-center p-3"
-              >
-                {t("button-secondary")}
-              </Link>
+            <Button
+              variant="secondary"
+              size="md"
+              fullWidth
+              onClick={() => handleRoleUpdate("customer")}
+            >
+              {t("no")}
             </Button>
           </div>
         </div>

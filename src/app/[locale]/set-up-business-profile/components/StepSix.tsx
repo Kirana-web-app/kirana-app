@@ -2,10 +2,9 @@ import { Button } from "@/src/components/UI/Button";
 import { useTranslations } from "next-intl";
 import { FC, useState, useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { BusinessProfileFormData } from "../page";
 import ProgressBar from "./ProgressBar";
 import Image from "next/image";
-import { StepProps } from "@/src/types/profileSetup";
+import { BusinessProfileFormData, StepProps } from "@/src/types/profileSetup";
 
 const StepSix: FC<
   StepProps & { onSubmit: (data: BusinessProfileFormData) => void }

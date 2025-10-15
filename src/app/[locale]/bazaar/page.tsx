@@ -1,11 +1,13 @@
 "use client";
 import { FC, useState, useMemo } from "react";
 import StoreCard from "./components/StoreCard";
-import { store } from "@/src/data/mockStores";
 import { Store } from "@/src/types/user";
 import { useFilterStore } from "@/src/stores/filterStore";
 import { filterStores } from "@/src/utils/filterUtils";
 import { useTranslations } from "next-intl";
+import { useQuery } from "@tanstack/react-query";
+import { getStores } from "@/src/utils/users";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 
 type TabType = "nearYou" | "saved";
 
@@ -17,17 +19,23 @@ const BazaarPage: FC = () => {
   // Get filter state from Zustand store
   const filters = useFilterStore();
 
+  const { data: store, isLoading } = useQuery({
+    queryKey: ["stores"],
+    queryFn: getStores,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
   // Apply filters to stores
   const getFilteredStores = useMemo(() => {
     // First filter by tab (nearYou vs saved)
     const tabFilteredStores =
       activeTab === "nearYou"
         ? store
-        : store.filter((storeItem) => savedStores.includes(storeItem.id));
+        : store?.filter((storeItem) => savedStores.includes(storeItem.id));
 
     // Then apply search and filter criteria
-    return filterStores(tabFilteredStores, filters);
-  }, [activeTab, savedStores, filters]);
+    if (tabFilteredStores) return filterStores(tabFilteredStores, filters);
+  }, [store, activeTab, savedStores, filters]);
 
   const filteredStores = getFilteredStores;
 
@@ -42,6 +50,10 @@ const BazaarPage: FC = () => {
         : [...prev, storeId]
     );
   };
+
+  console.log("stores", store);
+
+  if (isLoading) return <LoadingSpinner />;
 
   return (
     <div className="">
@@ -75,7 +87,7 @@ const BazaarPage: FC = () => {
 
       {/* Content */}
       <div className="py-6">
-        {filteredStores.length > 0 ? (
+        {filteredStores && filteredStores.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {filteredStores.map((storeItem, index) => (
               <StoreCard

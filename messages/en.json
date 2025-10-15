@@ -4,8 +4,8 @@
     "title_1": "Do you want to set up a Business Profile?",
     "title_2": "Set up a Business Profile",
     "description": "Reach more customers, showcase your products, and grow your business with your online seller profile.",
-    "button-primary": "Yes",
-    "button-secondary": "No"
+    "yes": "Yes",
+    "no": "No"
   },
   "StepOne": {
     "heading": "Owner's Name",
@@ -74,6 +74,7 @@
   "CustomerProfile": {
     "title": "Profile",
     "editProfile": "Edit Profile",
+    "chatWithCustomer": "Chat with Customer",
     "saved": "Saved",
     "settings": "Settings",
     "defaultLanguage": "Default Language",
@@ -86,10 +87,18 @@
   "StoreProfile": {
     "editProfile": "Edit Profile",
     "storeRating": "Store Rating",
-    "deliveryRate": "Delivery Rate",
+    "chatWithSeller": "Chat with Seller",
+    "deliveryRate": "Delivery Speed",
     "address": "Address",
     "reviews": "Reviews",
+    "rating": "Rating",
+    "deliverySpeed": "How fast was their delivery?",
+    "submitReview": "Submit Review",
+    "leaveReview": "Leave a review",
+    "giveReview": "Give a review",
     "noReviews": "No reviews yet.",
+    "writeReviewPlaceholder": "Write your review...",
+    "submittingReview": "Submitting...",
     "settings": "Settings",
     "defaultLanguage": "Default Language",
     "selectLanguage": "Select a language",
@@ -130,7 +139,7 @@
     "noSavedStores": "No saved stores yet",
     "noStoresNearby": "No stores nearby",
     "adjustFilters": "Try adjusting your search criteria or clearing some filters to see more results.",
-    "saveStoresMessage": "Save your favorite stores to see them here. Look for the heart icon on store cards.",
-    "expandSearch": "We couldn't find any stores in your area. Try expanding your search radius or check back later."
+    "saveStoresMessage": "Save your favorite stores to see them here.",
+    "expandSearch": "We couldn't find any stores in your area."
   }
 }
