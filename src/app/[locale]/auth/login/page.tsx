@@ -11,6 +11,7 @@ import useAuthStore from "@/src/stores/authStore";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import { getFirebaseErrorMessage } from "@/src/constants/authErrors";
+import useAuthRedirect from "@/src/hooks/useAuthRedirect";
 
 interface LoginFormData {
   email: string;
@@ -19,8 +20,10 @@ interface LoginFormData {
 }
 
 const LoginPage: FC = () => {
-  const { logIn, authLoading, user } = useAuthStore();
+  const { logIn, authLoading } = useAuthStore();
   const [authError, setAuthError] = useState<string>("");
+
+  useAuthRedirect();
 
   const router = useRouter();
   const {
@@ -28,12 +31,6 @@ const LoginPage: FC = () => {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({ defaultValues: { role: "customer" } });
-
-  useEffect(() => {
-    if (user) {
-      router.push(ROUTES.BAZAAR);
-    }
-  }, [user, router]);
 
   const onSubmit = async (data: LoginFormData) => {
     // Clear any previous errors

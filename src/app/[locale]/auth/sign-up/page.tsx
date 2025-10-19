@@ -5,12 +5,17 @@ import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { Input } from "@/src/components/UI/Input";
 import { ROUTES } from "@/src/constants/routes/routes";
-import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import {
+  MdOutlineArrowBackIosNew,
+  MdVisibility,
+  MdVisibilityOff,
+} from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/UI/Button";
 import useAuthStore from "@/src/stores/authStore";
 import { getFirebaseErrorMessage } from "@/src/constants/authErrors";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import useAuthRedirect from "@/src/hooks/useAuthRedirect";
 
 interface SignupFormData {
   fullName: string;
@@ -21,8 +26,13 @@ interface SignupFormData {
 }
 
 const SignUpPage: FC = () => {
-  const { signUp, authLoading, user } = useAuthStore();
+  const { signUp, authLoading } = useAuthStore();
   const [authError, setAuthError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
+
+  useAuthRedirect();
 
   const {
     register,
@@ -35,17 +45,18 @@ const SignUpPage: FC = () => {
 
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (user) {
-  //     router.push(ROUTES.BAZAAR);
-  //   }
-  // }, [user, router]);
-
   const onSubmit = async (data: SignupFormData) => {
     // Clear any previous errors
     setAuthError("");
 
     console.log("Signup attempt:", data);
+
+    //check if all required fields are filled
+    const allFieldsFilled = Object.values(data).every((field) => field);
+    if (!allFieldsFilled) {
+      setAuthError("Please fill in all required fields.");
+      return;
+    }
 
     try {
       await signUp(data.fullName, data.email, data.password, data.phoneNumber);
@@ -142,6 +153,10 @@ const SignUpPage: FC = () => {
                   value: 2,
                   message: "Full name must be at least 2 characters",
                 },
+                maxLength: {
+                  value: 64,
+                  message: "Full name must be at most 64 characters",
+                },
                 pattern: {
                   value: /^[\p{L}\p{M}\s]+$/u,
                   message: "Full name can only contain letters and spaces",
@@ -152,6 +167,7 @@ const SignUpPage: FC = () => {
               type="text"
               label="Full Name"
               required
+              maxLength={64}
               error={errors.fullName?.message}
             />
 
@@ -159,9 +175,13 @@ const SignUpPage: FC = () => {
             <Input
               {...register("email", {
                 required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
+                validate: {
+                  validEmail: (value) => {
+                    if (!value) return true; // Let required handle empty values
+                    const emailRegex =
+                      /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                    return emailRegex.test(value) || "Invalid email address";
+                  },
                 },
               })}
               id="email"
@@ -192,42 +212,72 @@ const SignUpPage: FC = () => {
             />
 
             {/* Password Input */}
-            <Input
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 8,
-                  message: "Password must be at least 8 characters",
-                },
-                pattern: {
-                  value:
-                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-                  message:
-                    "Password must contain uppercase, lowercase, number and special character",
-                },
-              })}
-              id="password"
-              name="password"
-              type="password"
-              label="Password"
-              required
-              error={errors.password?.message}
-            />
+            <div className="relative">
+              <Input
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 8,
+                    message: "Password must be at least 8 characters",
+                  },
+                  pattern: {
+                    value:
+                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+                    message:
+                      "Password must contain uppercase, lowercase, number and special character",
+                  },
+                })}
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                label="Password"
+                required
+                error={errors.password?.message}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 pt-6"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <MdVisibilityOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <MdVisibility className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
 
             {/* Confirm Password Input */}
-            <Input
-              {...register("confirmPassword", {
-                required: "Please confirm your password",
-                validate: (value) =>
-                  value === password || "Passwords do not match",
-              })}
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              label="Confirm Password"
-              required
-              error={errors.confirmPassword?.message}
-            />
+            <div className="relative">
+              <Input
+                {...register("confirmPassword", {
+                  required: "Please confirm your password",
+                  validate: (value) =>
+                    value === password || "Passwords do not match",
+                })}
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                label="Confirm Password"
+                required
+                error={errors.confirmPassword?.message}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 pt-6"
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showConfirmPassword ? (
+                  <MdVisibilityOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <MdVisibility className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
 
             {/* Desktop Sign Up Button - Hidden on mobile */}
             <div className="hidden sm:block">
