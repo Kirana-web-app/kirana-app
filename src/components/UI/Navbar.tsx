@@ -19,7 +19,7 @@ const navLinks = [
   {
     id: 2,
     label: "Chat",
-    href: ROUTES.CHAT,
+    href: ROUTES.CHAT(),
     icon: <IoChatbubblesOutline className="size-6" />,
   },
 ];

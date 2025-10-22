@@ -1,18 +1,29 @@
-export interface ChatUser {
-  id: string;
-  name: string;
-  avatar: string;
-  lastMessage: string;
-  timestamp: string;
-  isOnline: boolean;
-  unreadCount: number;
+import { FieldValue, Timestamp } from "firebase/firestore";
+
+export interface Chat {
+  id: string; // combination of user IDs (user1_user3)
+  // compare userA and userB with current user to determine other user
+  userA: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  userB: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  lastMessage?: Message | null;
+  lastMessageCreatedAt: FieldValue | Timestamp | null;
+  // messages?: Message[] | null; // subcollection of messages
 }
 
-export interface ChatMessage {
+export interface Message {
   id: string;
   senderId: string;
-  senderName: string;
+  receiverId: string;
   content: string;
-  timestamp: string;
-  isOwn: boolean;
+  createdAt: FieldValue | Timestamp;
+  updatedAt: FieldValue | Timestamp;
+  read: boolean;
 }

@@ -88,6 +88,7 @@
     "editProfile": "پروفائل میں تبدیلی کریں",
     "storeRating": "اسٹور کی درجہ بندی",
     "chatWithSeller": "بیچنے والے سے بات چیت کریں",
+    "creatingChat": "چیٹ بنائی جا رہی ہے",
     "deliveryRate": "ڈیلیوری کی رفتار",
     "address": "پتہ",
     "reviews": "جائزے",
@@ -116,7 +117,8 @@
     "selectConversation": "گفتگو منتخب کریں",
     "chooseCustomer": "چیٹ شروع کرنے کے لیے سائیڈبار سے کوئی گاہک منتخب کریں۔",
     "online": "آن لائن",
-    "lastSeen": "آخری بار دیکھا"
+    "lastSeen": "آخری بار دیکھا",
+    "noConversationsFound": "کوئی چیٹس نہیں ملے۔ چیٹ شروع کرنے کے لیے اسٹور تلاش کریں۔"
   },
   "Bazaar": {
     "nearYou": "آپ کے قریب",

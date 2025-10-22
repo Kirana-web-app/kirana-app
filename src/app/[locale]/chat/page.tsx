@@ -1,53 +1,103 @@
 "use client";
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import UserList from "./components/UserList";
 import ChatWindow from "./components/ChatWindow";
-import { mockChatData } from "@/src/data/mockChat";
-import { ChatMessage } from "@/src/types/messageTypes";
+import { Chat } from "@/src/types/messageTypes";
+import useAuthStore from "@/src/stores/authStore";
+import { subscribeToChats } from "@/src/utils/chat";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { useSearchParams } from "next/navigation";
 
 const ChatPage: FC = () => {
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [messages, setMessages] = useState(mockChatData.messages);
+  const { userData, authLoading } = useAuthStore();
+
+  // get param fronm url
+  const searchParams = useSearchParams();
+  const storeId = searchParams.get("id");
+
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(storeId);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [chatsLoading, setChatsLoading] = useState(false);
   const [showUserList, setShowUserList] = useState(true);
 
+  // Real-time chats listener
+  useEffect(() => {
+    if (!userData?.id) {
+      setChats([]);
+      return;
+    }
+
+    setChatsLoading(true);
+
+    const unsubscribe = subscribeToChats(userData.id, (updatedChats) => {
+      console.log("Updated chats:", updatedChats);
+
+      setChats(updatedChats);
+      setChatsLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [userData?.id]);
+
+  // Helper function to get the other user in a chat
+  const getOtherUser = (chat: Chat) => {
+    if (!userData) return null;
+    return chat.userA.id === userData.id ? chat.userB : chat.userA;
+  };
+
+  // Get selected user from chats
   const selectedUser = selectedUserId
-    ? mockChatData.users.find((user) => user.id === selectedUserId) || null
+    ? (() => {
+        const chat = chats.find((c: Chat) => {
+          const otherUser = getOtherUser(c);
+          return otherUser?.id === selectedUserId;
+        });
+        return chat ? getOtherUser(chat) : null;
+      })()
     : null;
 
-  const currentMessages = selectedUserId ? messages[selectedUserId] || [] : [];
+  // Get current messages using chat ID
+  const selectedChatId = selectedUserId
+    ? (() => {
+        const chat = chats.find((c: Chat) => {
+          const otherUser = getOtherUser(c);
+          return otherUser?.id === selectedUserId;
+        });
+        return chat?.id || null;
+      })()
+    : null;
 
   const handleUserSelect = (userId: string) => {
     setSelectedUserId(userId);
+    //set query param
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set("id", userId);
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}?${searchParams}`
+    );
     // Hide user list on mobile when a user is selected
     setShowUserList(false);
   };
 
   const handleBackToUserList = () => {
+    // Clear query param
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.delete("id");
+    window.history.replaceState(
+      {},
+      "",
+      `${window.location.pathname}?${searchParams}`
+    );
+
     setShowUserList(true);
     setSelectedUserId(null);
     // Don't clear selectedUserId to maintain the selection
   };
 
-  const handleSendMessage = (content: string) => {
-    if (!selectedUserId) return;
-
-    const newMessage: ChatMessage = {
-      id: `m${Date.now()}`,
-      senderId: "owner",
-      senderName: "You",
-      content,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      isOwn: true,
-    };
-
-    setMessages((prev) => ({
-      ...prev,
-      [selectedUserId]: [...(prev[selectedUserId] || []), newMessage],
-    }));
-  };
+  if (authLoading) return <LoadingSpinner heightScreen />;
 
   return (
     <div className="h-svh flex relative">
@@ -58,9 +108,10 @@ const ChatPage: FC = () => {
         } md:block w-full md:w-80 lg:w-96 absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`}
       >
         <UserList
-          users={mockChatData.users}
+          users={chats || []}
           selectedUserId={selectedUserId}
           onUserSelect={handleUserSelect}
+          loading={chatsLoading}
         />
       </div>
 
@@ -72,8 +123,7 @@ const ChatPage: FC = () => {
       >
         <ChatWindow
           selectedUser={selectedUser}
-          messages={currentMessages}
-          onSendMessage={handleSendMessage}
+          selectedChatId={selectedChatId}
           onBackToUserList={handleBackToUserList}
           showBackButton={!showUserList}
         />

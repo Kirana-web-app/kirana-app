@@ -32,6 +32,9 @@ const CustomerProfile: FC<{
   const [user, setUser] = useState(userData);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [togglingReadReceipts, setTogglingReadReceipts] = useState(false);
+
+  const [loggingOut, setLoggingOut] = useState(false);
   const [editedFullName, setEditedFullName] = useState(userData.fullName);
   const [editedPhoneNumber, setEditedPhoneNumber] = useState(
     userData.phoneNumber || ""
@@ -150,15 +153,20 @@ const CustomerProfile: FC<{
   };
 
   const handleLogOut = async () => {
+    setLoggingOut(true);
+
     try {
       await logOut();
       router.push(ROUTES.AUTH.LOGIN);
     } catch (error) {
       console.error("Error logging out:", error);
+      setLoggingOut(false);
     }
   };
 
   if (authLoading) return <LoadingSpinner className="mt-80" />;
+
+  if (loggingOut) return <LoadingSpinner heightScreen />;
 
   return (
     <div className="py-6">
@@ -317,11 +325,14 @@ const CustomerProfile: FC<{
                     <span>{t("readReceipts")}</span>
                   </div>
                   <Toggle
+                    isLoading={togglingReadReceipts}
                     onChange={async () => {
-                      setUser({ ...user, readReceipts: !user.readReceipts });
+                      setTogglingReadReceipts(true);
                       await updateCustomer(user.id, {
                         readReceipts: !user.readReceipts,
                       });
+                      setUser({ ...user, readReceipts: !user.readReceipts });
+                      setTogglingReadReceipts(false);
                     }}
                     checked={user.readReceipts}
                   />

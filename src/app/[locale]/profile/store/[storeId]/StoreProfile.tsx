@@ -31,18 +31,28 @@ import { deliveryRate } from "@/src/constants/deliverySpeeds";
 import GiveReview from "./GiveReview";
 import Review from "./Review";
 import useAuthStore from "@/src/stores/authStore";
+import { createNewChat } from "@/src/utils/chat";
+import {
+  compressImage,
+  COMPRESSION_PRESETS,
+  formatFileSize,
+  CompressionResult,
+} from "@/src/utils/imageCompressor";
 
 const StoreProfile: FC<{
   storeData: Store;
   handleBackClick: () => void;
   userAuthenticated: boolean;
 }> = ({ storeData, handleBackClick, userAuthenticated }) => {
-  const { user } = useAuthStore();
+  const { user, userData, logOut } = useAuthStore();
 
   const [store, setStore] = useState(storeData);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [creatingChat, setCreatingChat] = useState(false);
+  const [togglingReadReceipts, setTogglingReadReceipts] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [editedStoreName, setEditedStoreName] = useState(
     storeData.storeName || ""
   );
@@ -58,6 +68,12 @@ const StoreProfile: FC<{
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
     null
   );
+  const [compressedImageData, setCompressedImageData] = useState<string | null>(
+    null
+  );
+  const [compressionInfo, setCompressionInfo] =
+    useState<CompressionResult | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const t = useTranslations("StoreProfile");
@@ -103,6 +119,8 @@ const StoreProfile: FC<{
     setEditedAddress(store.address.addressLine);
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
   const handleCancelEdit = () => {
@@ -114,17 +132,60 @@ const StoreProfile: FC<{
     setEditedAddress(store.address.addressLine);
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setProfileImageFile(file);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 10MB before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Please select an image smaller than 10MB");
+      return;
+    }
+
+    setProfileImageFile(file);
+    setIsCompressing(true);
+
+    try {
+      // Create preview for immediate display
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Compress image for Firestore storage
+      const compressionResult = await compressImage(
+        file,
+        COMPRESSION_PRESETS.SMALL
+      );
+
+      setCompressedImageData(compressionResult.compressedImage);
+      setCompressionInfo(compressionResult);
+
+      console.log("Image compressed successfully:", {
+        originalSize: formatFileSize(compressionResult.originalSize),
+        compressedSize: formatFileSize(compressionResult.compressedSize),
+        compressionRatio: `${compressionResult.compressionRatio.toFixed(1)}%`,
+      });
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      alert("Failed to process image. Please try a different image.");
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -163,11 +224,13 @@ const StoreProfile: FC<{
         },
       };
 
-      // TODO: Upload image to Firebase Storage if profileImageFile exists
-      if (profileImageFile && profileImagePreview) {
-        console.log("Image file selected:", profileImageFile.name);
-
-        // updateData.profileImage = profileImagePreview;
+      // Save compressed image to Firestore
+      if (compressedImageData) {
+        updateData.profileImage = compressedImageData;
+        console.log("Saving compressed image to Firestore:", {
+          size: formatFileSize(compressionInfo?.compressedSize || 0),
+          compression: `${compressionInfo?.compressionRatio.toFixed(1)}%`,
+        });
       }
 
       await updateStore(store.id, updateData);
@@ -182,12 +245,14 @@ const StoreProfile: FC<{
           ...store.address,
           addressLine: editedAddress.trim(),
         },
-        profileImage: profileImagePreview || store.profileImage,
+        profileImage: compressedImageData || store.profileImage,
       });
 
       setIsEditing(false);
       setProfileImageFile(null);
       setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
 
       console.log("Store profile updated successfully");
     } catch (error) {
@@ -197,6 +262,48 @@ const StoreProfile: FC<{
       setIsSaving(false);
     }
   };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logOut();
+      router.push(ROUTES.AUTH.LOGIN);
+    } catch (error) {
+      console.error("Error during logout:", error);
+      setLoggingOut(false);
+    }
+  };
+
+  const handleNewChat = async () => {
+    if (!userData) return;
+
+    setCreatingChat(true);
+    try {
+      if (userData.userChatList?.includes(store.id)) {
+        router.push(ROUTES.CHAT(store.id));
+      } else {
+        await createNewChat(
+          {
+            id: userData.id,
+            name: userData.fullName,
+            avatar: userData.profileImage || "",
+          },
+          {
+            id: store.id,
+            name: store.storeName || store.ownerName,
+            avatar: store.profileImage || "",
+          }
+        );
+        router.push(ROUTES.CHAT(store.id));
+      }
+    } catch (error) {
+      console.error("Error creating new chat:", error);
+    } finally {
+      setCreatingChat(false);
+    }
+  };
+
+  if (loggingOut) return <LoadingSpinner heightScreen />;
 
   return (
     <div className="pb-6">
@@ -221,9 +328,14 @@ const StoreProfile: FC<{
                   <>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-4 right-4 bg-primary text-white p-3 rounded-full hover:bg-primary-dark transition-colors shadow-lg"
+                      disabled={isCompressing}
+                      className="absolute bottom-4 right-4 bg-primary text-white p-3 rounded-full hover:bg-primary-dark transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <MdCameraAlt className="size-6" />
+                      {isCompressing ? (
+                        <LoadingSpinner className="size-6" />
+                      ) : (
+                        <MdCameraAlt className="size-6" />
+                      )}
                     </button>
                     <input
                       ref={fileInputRef}
@@ -343,8 +455,20 @@ const StoreProfile: FC<{
                     </Button>
                   )
                 ) : (
-                  <Button variant="secondary" fullWidth>
-                    {t("chatWithSeller")}
+                  <Button
+                    disabled={creatingChat}
+                    variant="secondary"
+                    fullWidth
+                    onClick={handleNewChat}
+                  >
+                    {creatingChat ? (
+                      <>
+                        {t("creatingChat")}
+                        <LoadingSpinner className="size-5 mx-4" />
+                      </>
+                    ) : (
+                      t("chatWithSeller")
+                    )}
                   </Button>
                 )}
               </div>
@@ -482,17 +606,25 @@ const StoreProfile: FC<{
                     <span>{t("readReceipts")}</span>
                   </div>
                   <Toggle
+                    isLoading={togglingReadReceipts}
                     onChange={async () => {
-                      setStore({ ...store, readReceipts: !store.readReceipts });
+                      setTogglingReadReceipts(true);
+
                       await updateStore(store.id, {
                         readReceipts: !store.readReceipts,
                       });
+                      setStore({ ...store, readReceipts: !store.readReceipts });
+                      setTogglingReadReceipts(false);
                     }}
                     checked={store.readReceipts}
                   />
                 </div>
                 <div className="">
-                  <Button fullWidth variant="destructive">
+                  <Button
+                    fullWidth
+                    variant="destructive"
+                    onClick={handleLogout}
+                  >
                     {t("logOut")}
                   </Button>
                 </div>
