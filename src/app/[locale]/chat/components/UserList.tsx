@@ -8,6 +8,8 @@ import { ROUTES } from "@/src/constants/routes/routes";
 import useAuthStore from "@/src/stores/authStore";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { formatTimestamp } from "@/src/utils";
+import { decryptMessage } from "@/src/lib/encryption";
+import Image from "next/image";
 
 interface UserListProps {
   users: Chat[];
@@ -102,14 +104,26 @@ const UserList: FC<UserListProps> = ({
                   <div className="flex items-center gap-3">
                     {/* Avatar with online status */}
                     <div className="relative flex-shrink-0">
-                      <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-300 rounded-full flex items-center justify-center">
-                        <span className="text-xs md:text-sm font-medium text-gray-700">
-                          {otherUser.name
-                            .split(" ")
-                            .map((n: string) => n[0])
-                            .join("")
-                            .toUpperCase()}
-                        </span>
+                      <div className="w-10 h-10 md:w-12 md:h-12 bg-gray-300 rounded-full overflow-hidden">
+                        {otherUser.avatar ? (
+                          <Image
+                            src={otherUser.avatar}
+                            alt={otherUser.name}
+                            width={48}
+                            height={48}
+                            className="rounded-full object-cover object-center w-full h-full"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full bg-gray-200">
+                            <span className="text-xs md:text-sm font-medium text-gray-700">
+                              {otherUser.name
+                                .split(" ")
+                                .map((n: string) => n[0])
+                                .join("")
+                                .toUpperCase()}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       {/* TODO: Add online status when available */}
                     </div>
@@ -129,7 +143,7 @@ const UserList: FC<UserListProps> = ({
                       {chat.lastMessage && (
                         <div className="flex items-center justify-between mt-1">
                           <p className="text-xs md:text-sm text-gray-600 truncate pr-2 dynamic-content">
-                            {chat.lastMessage.content}
+                            {decryptMessage(chat.lastMessage.content)}
                           </p>
                           {/* TODO: Add unread count when available */}
                           {!chat.lastMessage.read &&

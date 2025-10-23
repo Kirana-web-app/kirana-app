@@ -13,7 +13,6 @@ const StoreProfilePage: FC = () => {
   const { storeId } = useParams() as { storeId: string };
 
   const router = useRouter();
-  // const [store, setStore] = useState<Store | null>(userData as Store);
   const userAuthenticated = userData?.id === storeId;
 
   const { data: store, isLoading } = useQuery({

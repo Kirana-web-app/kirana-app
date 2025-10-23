@@ -17,6 +17,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { Chat, Message } from "../types/messageTypes";
+import { decryptMessage, encryptMessage } from "../lib/encryption";
 
 const createChatId = (userId1: string, userId2: string): string => {
   return userId1 < userId2 ? `${userId1}_${userId2}` : `${userId2}_${userId1}`;
@@ -110,11 +111,12 @@ export const sendMessage = async (
     const chatDocRef = doc(db, "chats", chatId);
 
     const timestamp = serverTimestamp();
+    const content = encryptMessage(messageData.content);
 
     const message: Omit<Message, "id"> = {
       senderId: messageData.senderId,
       receiverId: messageData.receiverId,
-      content: messageData.content,
+      content,
       createdAt: timestamp,
       updatedAt: timestamp,
       read: false,
@@ -128,7 +130,7 @@ export const sendMessage = async (
       id: docRef.id,
       senderId: messageData.senderId,
       receiverId: messageData.receiverId,
-      content: messageData.content,
+      content,
       createdAt: timestamp,
       updatedAt: timestamp,
       read: false,
@@ -158,7 +160,10 @@ export const getMessages = async (
 
     const messages: Message[] = [];
     querySnapshot.forEach((doc) => {
-      messages.push({ id: doc.id, ...doc.data() } as Message);
+      messages.push({
+        id: doc.id,
+        ...doc.data(),
+      } as Message);
     });
     return messages;
   } catch (e) {
@@ -207,8 +212,10 @@ export const editMessage = async (
   try {
     const messageRef = doc(db, "chats", chatId, "messages", messageId);
 
+    const content = encryptMessage(newContent);
+
     await updateDoc(messageRef, {
-      content: newContent,
+      content,
       updatedAt: serverTimestamp(),
     } as Partial<Message>);
 
@@ -221,7 +228,7 @@ export const editMessage = async (
         const chatRef = doc(db, "chats", chatId);
 
         await updateDoc(chatRef, {
-          "lastMessage.content": newContent,
+          "lastMessage.content": content,
           "lastMessage.updatedAt": serverTimestamp(),
         } as Partial<Chat>);
       }

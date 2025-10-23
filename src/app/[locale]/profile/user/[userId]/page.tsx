@@ -9,11 +9,10 @@ import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { ROUTES } from "@/src/constants/routes/routes";
 
 const UserProfilePage: FC = () => {
-  const { user, userData, authLoading } = useAuthStore();
+  const { userData, authLoading } = useAuthStore();
 
   const { userId } = useParams() as { userId: string };
   const router = useRouter();
-  // const [customer, setCustomer] = useState<Customer>(user_profile);
   const userAuthenticated = userData?.id === userId;
 
   const { data: customer, isLoading } = useQuery({
@@ -28,7 +27,7 @@ const UserProfilePage: FC = () => {
 
   if (authLoading || isLoading) return <LoadingSpinner heightScreen />;
 
-  if (!customer) {
+  if (!customer || !userData) {
     return <div>User not found</div>;
   }
 

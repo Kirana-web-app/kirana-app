@@ -11,6 +11,7 @@ import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/src/lib/firebase";
 import { markMessagesAsRead } from "@/src/utils/chat";
 import { IoIosClose } from "react-icons/io";
+import Image from "next/image";
 
 interface ChatUser {
   id: string;
@@ -258,13 +259,23 @@ const ChatWindow: FC<ChatWindowProps> = ({
             {/* Avatar */}
             <div className="relative">
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-xs md:text-sm font-medium text-gray-700">
-                  {selectedUser.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
-                </span>
+                {selectedUser.avatar ? (
+                  <Image
+                    src={selectedUser.avatar}
+                    alt={selectedUser.name}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover object-center w-full h-full"
+                  />
+                ) : (
+                  <span className="text-xs md:text-sm font-medium text-gray-700">
+                    {selectedUser.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .toUpperCase()}
+                  </span>
+                )}
               </div>
               {selectedUser.isOnline && (
                 <div className="absolute bottom-0 right-0 w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-white"></div>
