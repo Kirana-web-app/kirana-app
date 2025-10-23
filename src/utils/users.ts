@@ -15,6 +15,55 @@ import { db } from "../lib/firebase";
 import { auth } from "../lib/firebase";
 import { Customer, Review, Store, UserRole } from "../types/user";
 
+// Helper function to update user information in chats
+const updateUserInChats = async (
+  userId: string,
+  updatedUserInfo: { name: string; avatar: string }
+) => {
+  try {
+    // Query all chats where the user is either userA or userB
+    const chatsRef = collection(db, "chats");
+
+    // Query for chats where user is userA
+    const userAQuery = query(chatsRef, where("userA.id", "==", userId));
+    const userASnapshot = await getDocs(userAQuery);
+
+    // Query for chats where user is userB
+    const userBQuery = query(chatsRef, where("userB.id", "==", userId));
+    const userBSnapshot = await getDocs(userBQuery);
+
+    // Update chats where user is userA
+    const userAUpdates = userASnapshot.docs.map(async (chatDoc) => {
+      const chatRef = doc(db, "chats", chatDoc.id);
+      await updateDoc(chatRef, {
+        "userA.name": updatedUserInfo.name,
+        "userA.avatar": updatedUserInfo.avatar,
+      });
+    });
+
+    // Update chats where user is userB
+    const userBUpdates = userBSnapshot.docs.map(async (chatDoc) => {
+      const chatRef = doc(db, "chats", chatDoc.id);
+      await updateDoc(chatRef, {
+        "userB.name": updatedUserInfo.name,
+        "userB.avatar": updatedUserInfo.avatar,
+      });
+    });
+
+    // Execute all updates in parallel
+    await Promise.all([...userAUpdates, ...userBUpdates]);
+
+    console.log(
+      `Updated user info in ${
+        userASnapshot.docs.length + userBSnapshot.docs.length
+      } chats`
+    );
+  } catch (error) {
+    console.error("Error updating user info in chats:", error);
+    // Don't throw error to prevent breaking the main update operation
+  }
+};
+
 export const createStoreProfile = async (
   userId: string,
   data: BusinessProfileFormData
@@ -174,6 +223,27 @@ export const updateStore = async (
       ...updatedData,
       updatedAt: serverTimestamp(),
     });
+
+    // Update user info in chats if name or avatar changed
+    const shouldUpdateChats =
+      updatedData.storeName ||
+      updatedData.ownerName ||
+      updatedData.profileImage;
+
+    if (shouldUpdateChats) {
+      // Get the updated store data to determine the display name
+      const updatedStoreDoc = await getDoc(storeDocRef);
+      if (updatedStoreDoc.exists()) {
+        const storeData = updatedStoreDoc.data() as Store;
+        const displayName = storeData.storeName || storeData.ownerName;
+        const avatar = storeData.profileImage || "";
+
+        await updateUserInChats(storeId, {
+          name: displayName,
+          avatar: avatar,
+        });
+      }
+    }
   } catch (error) {
     console.error("Error updating store:", error);
     throw error;
@@ -195,6 +265,22 @@ export const updateCustomer = async (
       ...updatedData,
       updatedAt: serverTimestamp(),
     });
+
+    // Update user info in chats if name or avatar changed
+    const shouldUpdateChats = updatedData.fullName || updatedData.profileImage;
+
+    if (shouldUpdateChats) {
+      // Get the updated customer data to determine the display name and avatar
+      const updatedCustomerDoc = await getDoc(customerDocRef);
+      if (updatedCustomerDoc.exists()) {
+        const customerData = updatedCustomerDoc.data() as Customer;
+
+        await updateUserInChats(customerId, {
+          name: customerData.fullName,
+          avatar: customerData.profileImage || "",
+        });
+      }
+    }
   } catch (error) {
     console.error("Error updating customer:", error);
     throw error;

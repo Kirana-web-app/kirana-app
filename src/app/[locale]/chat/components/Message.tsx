@@ -7,6 +7,7 @@ import { deleteMessage, editMessage } from "@/src/utils/chat";
 import { IoIosClose } from "react-icons/io";
 import { Button } from "@/src/components/UI/Button";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { decryptMessage } from "@/src/lib/encryption";
 
 interface ChatMessage extends MessageType {
   isOwn: boolean;
@@ -27,11 +28,13 @@ const Message: FC<MessageProps> = ({
   index,
 }) => {
   const { userData } = useAuthStore();
+  const decryptedMessage = decryptMessage(message.content);
+
   const messageRef = useRef<HTMLDivElement>(null);
   const [showOptions, setShowOptions] = useState(false);
   const [showMenuButton, setShowMenuButton] = useState(false);
   const [deletingMsg, setDeletingMsg] = useState(false);
-  const [editedMsg, setEditedMsg] = useState(message.content);
+  const [editedMsg, setEditedMsg] = useState(decryptedMessage);
   const [editingMsg, setEditingMsg] = useState(false);
 
   const editModalRef = useRef<HTMLDialogElement>(null);
@@ -158,7 +161,7 @@ const Message: FC<MessageProps> = ({
 
   const handleClose = () => {
     editModalRef.current?.close();
-    setEditedMsg(message.content);
+    setEditedMsg(decryptedMessage);
   };
 
   if (!userData) return null;
@@ -249,7 +252,7 @@ const Message: FC<MessageProps> = ({
           </div>
           <div className="flex items-center justify-center">
             <div className="shrink-0 max-w-xs lg:max-w-md px-4 py-2 rounded-lg bg-primary-light ">
-              <span className="text-sm">{message.content}</span>
+              <span className="text-sm">{decryptedMessage}</span>
             </div>
           </div>
           <div className="flex items-center gap-2 justify-end mt-4">
@@ -343,7 +346,8 @@ const Message: FC<MessageProps> = ({
         `}
             onTouchStart={() => setShowMenuButton(!showMenuButton)}
           >
-            <p className="text-sm">{message.content}</p>
+            <p className="text-sm">{}</p>
+            <p className="text-sm">{decryptedMessage}</p>
 
             <div
               className={`text-xs mt-2 block space-x-2 ${
