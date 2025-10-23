@@ -27,13 +27,15 @@ import {
   formatFileSize,
   CompressionResult,
 } from "@/src/utils/imageCompressor";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const CustomerProfile: FC<{
   userData: Customer;
   handleBackClick: () => void;
   userAuthenticated: boolean;
 }> = ({ userData, handleBackClick, userAuthenticated }) => {
-  const { logOut, authLoading } = useAuthStore();
+  const { logOut, authLoading, setUserData } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const [user, setUser] = useState(userData);
   const [isEditing, setIsEditing] = useState(false);
@@ -59,23 +61,61 @@ const CustomerProfile: FC<{
   const router = useRouter();
   const t = useTranslations("CustomerProfile");
 
+  // Mutation for updating customer profile
+  const updateCustomerMutation = useMutation({
+    mutationFn: (updateData: Partial<Customer>) =>
+      updateCustomer(user.id, updateData),
+    onSuccess: (_, variables) => {
+      // Update the customer query cache
+      queryClient.setQueryData(
+        [`customer_${user.id}`],
+        (oldData: Customer | undefined) => {
+          if (!oldData) return oldData;
+          return { ...oldData, ...variables };
+        }
+      );
+
+      // Update local state
+      setUser((prev) => ({ ...prev, ...variables }));
+
+      // IMPORTANT: Update authStore if this is the authenticated user
+      if (userAuthenticated) {
+        setUserData({ ...user, ...variables } as Customer);
+      }
+
+      // Invalidate any queries that might display user info (like chats, reviews, etc.)
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+    },
+    onError: (error) => {
+      console.error("Error updating customer profile:", error);
+      alert("Failed to update profile. Please try again.");
+    },
+  });
+
   const languageOptions = [
     {
       value: "en",
       label: t("english"),
       onClick: async () => {
-        setUser({ ...user, defaultLanguage: "en" });
-        await updateCustomer(user.id, { defaultLanguage: "en" });
-        router.push(`/en${ROUTES.PROFILE.USER(user.id)}`);
+        try {
+          await updateCustomerMutation.mutateAsync({ defaultLanguage: "en" });
+          router.push(`/en${ROUTES.PROFILE.USER(user.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
     {
       value: "ur",
       label: t("urdu"),
       onClick: async () => {
-        setUser({ ...user, defaultLanguage: "ur" });
-        await updateCustomer(user.id, { defaultLanguage: "ur" });
-        router.push(`/ur${ROUTES.PROFILE.USER(user.id)}`);
+        try {
+          await updateCustomerMutation.mutateAsync({ defaultLanguage: "ur" });
+          router.push(`/ur${ROUTES.PROFILE.USER(user.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
   ];
@@ -181,14 +221,8 @@ const CustomerProfile: FC<{
         });
       }
 
-      await updateCustomer(user.id, updateData);
-
-      setUser({
-        ...user,
-        fullName: editedFullName.trim(),
-        phoneNumber: editedPhoneNumber.trim() || null,
-        profileImage: compressedImageData || user.profileImage,
-      });
+      // Use mutation instead of direct update
+      await updateCustomerMutation.mutateAsync(updateData);
 
       setIsEditing(false);
       setProfileImageFile(null);
@@ -200,7 +234,6 @@ const CustomerProfile: FC<{
       console.log("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -387,11 +420,15 @@ const CustomerProfile: FC<{
                     isLoading={togglingReadReceipts}
                     onChange={async () => {
                       setTogglingReadReceipts(true);
-                      await updateCustomer(user.id, {
-                        readReceipts: !user.readReceipts,
-                      });
-                      setUser({ ...user, readReceipts: !user.readReceipts });
-                      setTogglingReadReceipts(false);
+                      try {
+                        await updateCustomerMutation.mutateAsync({
+                          readReceipts: !user.readReceipts,
+                        });
+                      } catch (error) {
+                        console.error("Error toggling read receipts:", error);
+                      } finally {
+                        setTogglingReadReceipts(false);
+                      }
                     }}
                     checked={user.readReceipts}
                   />

@@ -24,7 +24,7 @@ import {
 } from "react-icons/md";
 import { CiUser } from "react-icons/ci";
 import { Timestamp } from "firebase/firestore";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStoreReviews, updateStore } from "@/src/utils/users";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { deliveryRate } from "@/src/constants/deliverySpeeds";
@@ -44,7 +44,8 @@ const StoreProfile: FC<{
   handleBackClick: () => void;
   userAuthenticated: boolean;
 }> = ({ storeData, handleBackClick, userAuthenticated }) => {
-  const { user, userData, logOut } = useAuthStore();
+  const { user, userData, logOut, setUserData } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const [store, setStore] = useState(storeData);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -89,23 +90,61 @@ const StoreProfile: FC<{
     staleTime: "static",
   });
 
+  // Mutation for updating store profile
+  const updateStoreMutation = useMutation({
+    mutationFn: (updateData: Partial<Store>) =>
+      updateStore(store.id, updateData),
+    onSuccess: (_, variables) => {
+      // Update the store query cache
+      queryClient.setQueryData(
+        [`store_${store.id}`],
+        (oldData: Store | undefined) => {
+          if (!oldData) return oldData;
+          return { ...oldData, ...variables };
+        }
+      );
+
+      // Update local state
+      setStore((prev) => ({ ...prev, ...variables }));
+
+      // IMPORTANT: Update authStore if this is the authenticated user
+      if (userAuthenticated) {
+        setUserData({ ...store, ...variables } as Store);
+      }
+
+      // Invalidate any queries that might display store info (like bazaar, chats, reviews, etc.)
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+    },
+    onError: (error) => {
+      console.error("Error updating store profile:", error);
+      alert("Failed to update store profile. Please try again.");
+    },
+  });
+
   const languageOptions = [
     {
       value: "en",
       label: t("english"),
       onClick: async () => {
-        setStore({ ...store, defaultLanguage: "en" });
-        await updateStore(store.id, { defaultLanguage: "en" });
-        router.push(`/en${ROUTES.PROFILE.STORE(store.id)}`);
+        try {
+          await updateStoreMutation.mutateAsync({ defaultLanguage: "en" });
+          router.push(`/en${ROUTES.PROFILE.STORE(store.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
     {
       value: "ur",
       label: t("urdu"),
       onClick: async () => {
-        setStore({ ...store, defaultLanguage: "ur" });
-        await updateStore(store.id, { defaultLanguage: "ur" });
-        router.push(`/ur${ROUTES.PROFILE.STORE(store.id)}`);
+        try {
+          await updateStoreMutation.mutateAsync({ defaultLanguage: "ur" });
+          router.push(`/ur${ROUTES.PROFILE.STORE(store.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
   ];
@@ -233,20 +272,8 @@ const StoreProfile: FC<{
         });
       }
 
-      await updateStore(store.id, updateData);
-
-      setStore({
-        ...store,
-        ownerName: editedOwnerName.trim(),
-        storeName: editedStoreName.trim() || null,
-        phoneNumber: editedPhoneNumber.trim() || null,
-        type: editedStoreType.trim(),
-        address: {
-          ...store.address,
-          addressLine: editedAddress.trim(),
-        },
-        profileImage: compressedImageData || store.profileImage,
-      });
+      // Use mutation instead of direct update
+      await updateStoreMutation.mutateAsync(updateData);
 
       setIsEditing(false);
       setProfileImageFile(null);
@@ -257,7 +284,6 @@ const StoreProfile: FC<{
       console.log("Store profile updated successfully");
     } catch (error) {
       console.error("Error updating store profile:", error);
-      alert("Failed to update store profile. Please try again.");
     } finally {
       setIsSaving(false);
     }
@@ -546,14 +572,10 @@ const StoreProfile: FC<{
                   </Button>
                 ) : (
                   <div className="space-y-1">
-                    <GiveReview storeId={store.id} />
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowReviewForm(false)}
-                      fullWidth
-                    >
-                      Cancel
-                    </Button>
+                    <GiveReview
+                      storeId={store.id}
+                      closeEditor={() => setShowReviewForm(false)}
+                    />
                   </div>
                 )}
               </div>
@@ -609,12 +631,15 @@ const StoreProfile: FC<{
                     isLoading={togglingReadReceipts}
                     onChange={async () => {
                       setTogglingReadReceipts(true);
-
-                      await updateStore(store.id, {
-                        readReceipts: !store.readReceipts,
-                      });
-                      setStore({ ...store, readReceipts: !store.readReceipts });
-                      setTogglingReadReceipts(false);
+                      try {
+                        await updateStoreMutation.mutateAsync({
+                          readReceipts: !store.readReceipts,
+                        });
+                      } catch (error) {
+                        console.error("Error toggling read receipts:", error);
+                      } finally {
+                        setTogglingReadReceipts(false);
+                      }
                     }}
                     checked={store.readReceipts}
                   />

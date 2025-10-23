@@ -316,12 +316,13 @@ const ChatWindow: FC<ChatWindowProps> = ({
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-3 md:p-4 ">
         <div className="space-y-3 md:space-y-4">
-          {allMessages.map((message: any) => (
+          {allMessages.map((message: any, i) => (
             <Message
               key={message.id}
               message={message}
               onMessageRead={handleMessageRead}
               chatId={selectedChatId}
+              index={i}
             />
           ))}
           <div ref={viewRef}></div>

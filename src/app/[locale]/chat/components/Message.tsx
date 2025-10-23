@@ -16,10 +16,16 @@ interface ChatMessage extends MessageType {
 interface MessageProps {
   message: ChatMessage;
   onMessageRead?: (messageId: string) => void;
-  chatId?: string | null;
+  chatId: string | null;
+  index: number;
 }
 
-const Message: FC<MessageProps> = ({ message, onMessageRead, chatId }) => {
+const Message: FC<MessageProps> = ({
+  message,
+  onMessageRead,
+  chatId,
+  index,
+}) => {
   const { userData } = useAuthStore();
   const messageRef = useRef<HTMLDivElement>(null);
   const [showOptions, setShowOptions] = useState(false);
@@ -154,6 +160,8 @@ const Message: FC<MessageProps> = ({ message, onMessageRead, chatId }) => {
     editModalRef.current?.close();
     setEditedMsg(message.content);
   };
+
+  if (!userData) return null;
 
   if (deletingMsg && message.isOwn) {
     return (
@@ -293,9 +301,9 @@ const Message: FC<MessageProps> = ({ message, onMessageRead, chatId }) => {
                 <div
                   className={`${
                     showOptions ? "block" : "hidden"
-                  } flex-col flex justify-start items-start  bg-white p-2 shadow-md rounded-lg absolute bottom-1/2 mb-5 w-28 ${
-                    message.isOwn ? "left-1" : "right-1"
-                  }`}
+                  } flex-col flex justify-start items-start  bg-white p-2 shadow-md rounded-lg absolute ${
+                    index < 2 ? "top-1/2 mt-5" : "bottom-1/2 mb-5"
+                  } w-28 z-50  ${message.isOwn ? "left-1" : "right-1"}`}
                 >
                   {[
                     // { label: "Translate" },
@@ -353,7 +361,7 @@ const Message: FC<MessageProps> = ({ message, onMessageRead, chatId }) => {
                 <span className="ml-1 text-blue-500">• editable</span>
               )} */}
               {/* Read Status */}
-              {userData?.readReceipts && (
+              {userData.readReceipts && (
                 <span>{message.read ? "seen" : "sent"}</span>
               )}
             </div>
