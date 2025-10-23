@@ -12,18 +12,24 @@ import {
 } from "@/src/data/businessTypes";
 import { GoBookmark, GoBookmarkFill } from "react-icons/go";
 import { deliveryRate } from "@/src/constants/deliverySpeeds";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import useAuthStore from "@/src/stores/authStore";
 
 interface StoreCardProps {
   store: Store;
   isSaved?: boolean;
   onToggleSave?: (storeId: string) => void;
+  isToggling?: boolean;
 }
 
 const StoreCard: FC<StoreCardProps> = ({
   store,
   isSaved = false,
   onToggleSave,
+  isToggling = false,
 }) => {
+  const { userData } = useAuthStore();
+
   const t = useTranslations("Bazaar");
   const l = useTranslations("locale");
 
@@ -60,16 +66,21 @@ const StoreCard: FC<StoreCardProps> = ({
           )}
         </div>
         {/* Save/Unsave Button */}
-        <button
-          onClick={handleToggleSave}
-          className="absolute top-2 right-2 p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all"
-        >
-          {isSaved ? (
-            <GoBookmarkFill className="w-5 h-5 text-primary" />
-          ) : (
-            <GoBookmark className="w-5 h-5 text-gray-600" />
-          )}
-        </button>
+        {userData?.role === "customer" && (
+          <button
+            onClick={handleToggleSave}
+            disabled={isToggling}
+            className="absolute top-2 right-2 p-2 bg-white bg-opacity-90 rounded-full hover:bg-opacity-100 transition-all disabled:cursor-not-allowed"
+          >
+            {isToggling ? (
+              <AiOutlineLoading3Quarters className="w-5 h-5 text-primary animate-spin" />
+            ) : isSaved ? (
+              <GoBookmarkFill className="w-5 h-5 text-primary" />
+            ) : (
+              <GoBookmark className="w-5 h-5 text-gray-600" />
+            )}
+          </button>
+        )}
       </div>
       <div className="py-4 px-2">
         <h3 className="text-lg font-semibold line-clamp-2 mb-1 store-name">

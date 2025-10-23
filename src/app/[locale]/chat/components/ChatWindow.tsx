@@ -1,50 +1,220 @@
-import { ChatMessage, ChatUser } from "@/src/types/messageTypes";
-import { FC, useRef, useState } from "react";
+"use client";
+import { Message as MessageType } from "@/src/types/messageTypes";
+import { FC, useRef, useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import {
-  IoSend,
-  IoAttach,
-  IoCall,
-  IoVideocam,
-  IoArrowBack,
-} from "react-icons/io5";
+import { IoCall, IoVideocam, IoArrowBack } from "react-icons/io5";
 import Message from "./Message";
+import MessageInput from "./MessageInput";
+import useAuthStore from "@/src/stores/authStore";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { db } from "@/src/lib/firebase";
+import { markMessagesAsRead } from "@/src/utils/chat";
+import { IoIosClose } from "react-icons/io";
+import Image from "next/image";
+
+interface ChatUser {
+  id: string;
+  name: string;
+  avatar: string;
+  isOnline?: boolean;
+  lastSeen?: string;
+}
 
 interface ChatWindowProps {
   selectedUser: ChatUser | null;
-  messages: ChatMessage[];
-  onSendMessage: (content: string) => void;
+  selectedChatId: string | null;
   onBackToUserList?: () => void;
   showBackButton?: boolean;
 }
 
 const ChatWindow: FC<ChatWindowProps> = ({
   selectedUser,
-  messages,
-  onSendMessage,
+  selectedChatId,
   onBackToUserList,
   showBackButton = false,
 }) => {
-  const [messageInput, setMessageInput] = useState("");
+  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [optimisticMessages, setOptimisticMessages] = useState<
+    Map<
+      string,
+      {
+        id: string;
+        content: string;
+        status: "sending" | "sent" | "failed";
+        senderId: string;
+        receiverId: string;
+        createdAt: any;
+      }
+    >
+  >(new Map());
   const t = useTranslations("Chat");
+  const { userData } = useAuthStore();
 
   const viewRef = useRef<HTMLDivElement | null>(null);
 
-  const handleSendMessage = () => {
-    if (messageInput.trim()) {
-      onSendMessage(messageInput.trim());
-      setMessageInput("");
-      // Scroll to bottom after sending a message
-      setTimeout(() => {
-        viewRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+  // Real-time messages listener
+  useEffect(() => {
+    if (!selectedChatId) {
+      setMessages([]);
+      setOptimisticMessages(new Map()); // Clear optimistic messages when changing chats
+      return;
     }
+
+    setMessagesLoading(true);
+
+    const messagesRef = collection(db, "chats", selectedChatId, "messages");
+    const q = query(messagesRef, orderBy("createdAt", "asc"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const messagesData: MessageType[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // Only add messages that have a valid createdAt timestamp
+          if (data.createdAt) {
+            messagesData.push({ id: doc.id, ...data } as MessageType);
+          }
+        });
+
+        // Sort messages by createdAt to ensure proper order
+        messagesData.sort((a, b) => {
+          const aTime = a.createdAt;
+          const bTime = b.createdAt;
+
+          const aTimestamp =
+            aTime && typeof aTime === "object" && "toDate" in aTime
+              ? aTime.toDate().getTime()
+              : new Date(aTime as any).getTime();
+          const bTimestamp =
+            bTime && typeof bTime === "object" && "toDate" in bTime
+              ? bTime.toDate().getTime()
+              : new Date(bTime as any).getTime();
+
+          return aTimestamp - bTimestamp;
+        });
+
+        setMessages(messagesData);
+        setMessagesLoading(false);
+      },
+      (error) => {
+        console.error("Error listening to messages:", error);
+        setMessagesLoading(false);
+      }
+    );
+
+    // Cleanup subscription on unmount or chat change
+    return () => unsubscribe();
+  }, [selectedChatId]);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when new chat is selected and messages finish loading
+    viewRef.current?.scrollIntoView({ behavior: "instant" });
+  }, [messagesLoading, selectedChatId]);
+
+  // Auto-scroll when new messages are added
+  useEffect(() => {
+    // Small delay to ensure DOM has updated
+    const timer = setTimeout(() => {
+      viewRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [messages.length]);
+
+  // Transform messages to include isOwn and formatted timestamp
+  const chatMessages = messages.map((message: MessageType) => ({
+    ...message,
+    isOwn: message.senderId === userData?.id,
+  }));
+
+  // Combine real messages with optimistic messages
+  const optimisticMessagesArray = Array.from(optimisticMessages.values()).map(
+    (msg) => ({
+      ...msg,
+      isOwn: msg.senderId === userData?.id,
+      read: false,
+      updatedAt: msg.createdAt,
+    })
+  );
+
+  const allMessages = [...chatMessages, ...optimisticMessagesArray].sort(
+    (a, b) => {
+      // Handle null/undefined timestamps by putting them at the end
+      const aTime = a.createdAt;
+      const bTime = b.createdAt;
+
+      // If either timestamp is null/undefined, handle appropriately
+      if (!aTime && !bTime) return 0;
+      if (!aTime) return 1; // Put messages with no timestamp at the end
+      if (!bTime) return -1;
+
+      // Convert to milliseconds for comparison
+      const aTimestamp =
+        aTime && typeof aTime === "object" && "toDate" in aTime
+          ? aTime.toDate().getTime()
+          : new Date(aTime as any).getTime();
+      const bTimestamp =
+        bTime && typeof bTime === "object" && "toDate" in bTime
+          ? bTime.toDate().getTime()
+          : new Date(bTime as any).getTime();
+
+      return aTimestamp - bTimestamp;
+    }
+  );
+
+  // Handle optimistic message updates
+  const handleOptimisticMessage = (optimisticMessage: {
+    id: string;
+    content: string;
+    status: "sending" | "sent" | "failed";
+  }) => {
+    if (!userData || !selectedUser) return;
+
+    setOptimisticMessages((prev) => {
+      const newMap = new Map(prev);
+
+      if (optimisticMessage.status === "sent") {
+        // Remove optimistic message when it's confirmed sent
+        // The real message will appear via the real-time listener
+        setOptimisticMessages((current) => {
+          const updated = new Map(current);
+          updated.delete(optimisticMessage.id);
+          return updated;
+        });
+      } else {
+        // Add or update optimistic message
+        newMap.set(optimisticMessage.id, {
+          ...optimisticMessage,
+          senderId: userData.id,
+          receiverId: selectedUser.id,
+          createdAt: new Date(),
+        });
+      }
+
+      return newMap;
+    });
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  // Handle auto-scroll when a new message is sent
+  const handleMessageSent = () => {
+    viewRef.current?.scrollIntoView({ behavior: "instant" });
+  };
+
+  // Handle marking messages as read when they come into view
+  const handleMessageRead = async (messageId: string) => {
+    if (!selectedChatId || !userData) return;
+
+    try {
+      await markMessagesAsRead(
+        selectedChatId,
+        messageId,
+        userData.readReceipts
+      );
+    } catch (error) {
+      console.error("Error marking message as read:", error);
     }
   };
 
@@ -78,32 +248,34 @@ const ChatWindow: FC<ChatWindowProps> = ({
     );
   }
 
+  if (messagesLoading) return <LoadingSpinner className="py-20" />;
+
   return (
-    <div className="flex-1 flex flex-col h-svh">
+    <div className="flex-1 flex flex-col h-svh bg-gray-100/60">
       {/* Chat Header */}
       <div className="p-3 md:p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {/* Back Button for Mobile */}
-            {showBackButton && onBackToUserList && (
-              <button
-                onClick={onBackToUserList}
-                className="md:hidden p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <IoArrowBack className="w-5 h-5" />
-              </button>
-            )}
-
             {/* Avatar */}
             <div className="relative">
               <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-300 rounded-full flex items-center justify-center">
-                <span className="text-xs md:text-sm font-medium text-gray-700">
-                  {selectedUser.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                    .toUpperCase()}
-                </span>
+                {selectedUser.avatar ? (
+                  <Image
+                    src={selectedUser.avatar}
+                    alt={selectedUser.name}
+                    width={48}
+                    height={48}
+                    className="rounded-full object-cover object-center w-full h-full"
+                  />
+                ) : (
+                  <span className="text-xs md:text-sm font-medium text-gray-700">
+                    {selectedUser.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .toUpperCase()}
+                  </span>
+                )}
               </div>
               {selectedUser.isOnline && (
                 <div className="absolute bottom-0 right-0 w-2 h-2 md:w-3 md:h-3 bg-green-500 rounded-full border-2 border-white"></div>
@@ -121,7 +293,9 @@ const ChatWindow: FC<ChatWindowProps> = ({
                 ) : (
                   <>
                     <span>last Seen </span>
-                    <span className="date">{selectedUser.timestamp}</span>
+                    <span className="date">
+                      {selectedUser.lastSeen || "recently"}
+                    </span>
                   </>
                 )}
               </p>
@@ -136,6 +310,16 @@ const ChatWindow: FC<ChatWindowProps> = ({
             <button className="p-1.5 md:p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
               <IoVideocam className="w-4 h-4 md:w-5 md:h-5" />
             </button> */}
+            {/* Back Button for Mobile */}
+            {onBackToUserList && (
+              <button
+                onClick={onBackToUserList}
+                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title="close chat"
+              >
+                <IoIosClose className="size-8" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -143,42 +327,26 @@ const ChatWindow: FC<ChatWindowProps> = ({
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-3 md:p-4 ">
         <div className="space-y-3 md:space-y-4">
-          {messages.map((message) => (
-            <Message key={message.id} message={message} />
+          {allMessages.map((message: any, i) => (
+            <Message
+              key={message.id}
+              message={message}
+              onMessageRead={handleMessageRead}
+              chatId={selectedChatId}
+              index={i}
+            />
           ))}
           <div ref={viewRef}></div>
         </div>
       </div>
 
-      {/* Message Input */}
-      <div className="p-3 md:p-4 border-t border-gray-200 bg-white">
-        <div className="flex items-center gap-2">
-          {/* Message Input */}
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={messageInput}
-              onChange={(e) => setMessageInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={t("typeMessage")}
-              className="w-full px-3 py-2 md:px-4 md:py-2 text-sm md:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-          </div>
-
-          {/* Send Button */}
-          <button
-            onClick={handleSendMessage}
-            disabled={!messageInput.trim()}
-            className={`p-1.5 md:p-2 rounded-lg transition-colors ${
-              messageInput.trim()
-                ? "bg-primary text-white hover:bg-orange-600"
-                : "bg-gray-100 text-gray-400 cursor-not-allowed"
-            }`}
-          >
-            <IoSend className="w-4 h-4 md:w-5 md:h-5" />
-          </button>
-        </div>
-      </div>
+      {/* Message Input Component */}
+      <MessageInput
+        selectedChatId={selectedChatId}
+        selectedUser={selectedUser}
+        onMessageSent={handleMessageSent}
+        // onOptimisticMessage={handleOptimisticMessage}
+      />
     </div>
   );
 };

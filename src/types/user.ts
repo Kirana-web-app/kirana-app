@@ -1,4 +1,5 @@
 import { FieldValue, Timestamp } from "firebase/firestore";
+import { Chat } from "./messageTypes";
 
 export type UserRole = "user" | "customer" | "store";
 
@@ -32,10 +33,13 @@ export interface User {
   profileImage?: string | null;
   role: UserRole;
   defaultLanguage: "en" | "ur";
-  readReceipts: boolean;
   createdAt: FieldValue | Timestamp;
   updatedAt: FieldValue | Timestamp;
   profileCreated?: boolean;
+
+  readReceipts: boolean;
+  userChatList?: string[]; // Array of user IDs with whom the user has chats
+  chatLists?: Chat[];
 }
 
 export interface Store extends User {
