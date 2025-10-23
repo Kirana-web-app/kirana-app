@@ -18,17 +18,11 @@ const StepSix: FC<
 
   // Create image preview for the uploaded image
   useEffect(() => {
-    if (
-      formData.businessProfileImage &&
-      formData.businessProfileImage instanceof File
-    ) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(formData.businessProfileImage);
+    if (formData.profileImage) {
+      // The profileImage is already a base64 string from compression
+      setImagePreview(formData.profileImage);
     }
-  }, [formData.businessProfileImage]);
+  }, [formData.profileImage]);
 
   // Determine heading hierarchy based on store name availability
   const hasStoreName = formData.storeName && formData.storeName.trim() !== "";

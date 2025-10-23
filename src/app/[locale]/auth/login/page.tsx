@@ -6,7 +6,11 @@ import { useForm } from "react-hook-form";
 import { Button } from "../../../../components/UI/Button";
 import { Input } from "../../../../components/UI/Input";
 import { ROUTES } from "../../../../constants/routes/routes";
-import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import {
+  MdOutlineArrowBackIosNew,
+  MdVisibility,
+  MdVisibilityOff,
+} from "react-icons/md";
 import useAuthStore from "@/src/stores/authStore";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { useRouter } from "next/navigation";
@@ -16,12 +20,12 @@ import useAuthRedirect from "@/src/hooks/useAuthRedirect";
 interface LoginFormData {
   email: string;
   password: string;
-  role: "customer" | "store";
 }
 
 const LoginPage: FC = () => {
-  const { logIn, authLoading } = useAuthStore();
+  const { logIn, authLoading, userData } = useAuthStore();
   const [authError, setAuthError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   useAuthRedirect();
 
@@ -30,7 +34,7 @@ const LoginPage: FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({ defaultValues: { role: "customer" } });
+  } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
     // Clear any previous errors
@@ -40,7 +44,6 @@ const LoginPage: FC = () => {
 
     try {
       await logIn(data.email, data.password);
-      router.push(ROUTES.BAZAAR);
     } catch (error: any) {
       console.error("Login error:", error);
 
@@ -54,6 +57,17 @@ const LoginPage: FC = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (userData) {
+      if (
+        userData.role === "user" ||
+        (userData.role === "store" && !userData.profileCreated)
+      )
+        router.push(ROUTES.SET_UP_BUSINESS_PROFILE);
+      else router.push(ROUTES.BAZAAR);
+    }
+  }, [userData]);
 
   if (authLoading) return <LoadingSpinner heightScreen />;
 
@@ -142,20 +156,34 @@ const LoginPage: FC = () => {
             />
 
             {/* Password Input */}
-            <Input
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 6,
-                  message: "Password must be at least 6 characters",
-                },
-              })}
-              id="password"
-              name="password"
-              type="password"
-              placeholder="Password"
-              error={errors.password?.message}
-            />
+            <div className="relative">
+              <Input
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: {
+                    value: 6,
+                    message: "Password must be at least 6 characters",
+                  },
+                })}
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                error={errors.password?.message}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <MdVisibilityOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <MdVisibility className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
 
             {/* Forgot Password */}
             <div className="flex justify-end">

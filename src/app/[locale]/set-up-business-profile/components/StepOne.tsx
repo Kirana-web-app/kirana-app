@@ -3,6 +3,7 @@ import { Input } from "@/src/components/UI/Input";
 import { useTranslations } from "next-intl";
 import { FC } from "react";
 import { StepProps } from "@/src/types/profileSetup";
+import useAuthStore from "@/src/stores/authStore";
 
 const StepOne: FC<StepProps> = ({ currentStep, changeStep, form }) => {
   const t = useTranslations("StepOne");

@@ -31,6 +31,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           className={inputClasses}
+          aria-required={required}
           {...registration}
           {...props}
         />

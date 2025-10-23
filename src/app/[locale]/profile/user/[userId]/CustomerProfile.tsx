@@ -21,6 +21,12 @@ import useAuthStore from "@/src/stores/authStore";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import Link from "next/link";
 import { updateCustomer } from "@/src/utils/users";
+import {
+  compressImage,
+  COMPRESSION_PRESETS,
+  formatFileSize,
+  CompressionResult,
+} from "@/src/utils/imageCompressor";
 
 const CustomerProfile: FC<{
   userData: Customer;
@@ -43,6 +49,12 @@ const CustomerProfile: FC<{
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
     null
   );
+  const [compressedImageData, setCompressedImageData] = useState<string | null>(
+    null
+  );
+  const [compressionInfo, setCompressionInfo] =
+    useState<CompressionResult | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const t = useTranslations("CustomerProfile");
@@ -74,6 +86,8 @@ const CustomerProfile: FC<{
     setEditedPhoneNumber(user.phoneNumber || "");
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
   const handleCancelEdit = () => {
@@ -82,17 +96,60 @@ const CustomerProfile: FC<{
     setEditedPhoneNumber(user.phoneNumber || "");
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setProfileImageFile(file);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 10MB before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Please select an image smaller than 10MB");
+      return;
+    }
+
+    setProfileImageFile(file);
+    setIsCompressing(true);
+
+    try {
+      // Create preview for immediate display
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Compress image for Firestore storage
+      const compressionResult = await compressImage(
+        file,
+        COMPRESSION_PRESETS.PROFILE
+      );
+
+      setCompressedImageData(compressionResult.compressedImage);
+      setCompressionInfo(compressionResult);
+
+      console.log("Image compressed successfully:", {
+        originalSize: formatFileSize(compressionResult.originalSize),
+        compressedSize: formatFileSize(compressionResult.compressedSize),
+        compressionRatio: `${compressionResult.compressionRatio.toFixed(1)}%`,
+      });
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      alert("Failed to process image. Please try a different image.");
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -115,18 +172,13 @@ const CustomerProfile: FC<{
         phoneNumber: editedPhoneNumber.trim() || null,
       };
 
-      // TODO: Upload image to Firebase Storage if profileImageFile exists
-      // For now, we'll keep the existing image or use null for new uploads
-      // In a real implementation, you would:
-      // 1. Upload profileImageFile to Firebase Storage
-      // 2. Get the download URL
-      // 3. Set updateData.profileImage = downloadURL
-
-      if (profileImageFile && profileImagePreview) {
-        // For demo purposes, we'll use the preview URL
-        // In production, replace this with Firebase Storage upload
-        console.log("Image file selected:", profileImageFile.name);
-        updateData.profileImage = profileImagePreview;
+      // Save compressed image to Firestore
+      if (compressedImageData) {
+        updateData.profileImage = compressedImageData;
+        console.log("Saving compressed image to Firestore:", {
+          size: formatFileSize(compressionInfo?.compressedSize || 0),
+          compression: `${compressionInfo?.compressionRatio.toFixed(1)}%`,
+        });
       }
 
       await updateCustomer(user.id, updateData);
@@ -135,12 +187,14 @@ const CustomerProfile: FC<{
         ...user,
         fullName: editedFullName.trim(),
         phoneNumber: editedPhoneNumber.trim() || null,
-        profileImage: profileImagePreview || user.profileImage,
+        profileImage: compressedImageData || user.profileImage,
       });
 
       setIsEditing(false);
       setProfileImageFile(null);
       setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
 
       // Success feedback
       console.log("Profile updated successfully");
@@ -181,12 +235,12 @@ const CustomerProfile: FC<{
         <div className="py-4 ">
           <div className="px-4 space-y-6 w-full">
             <div className=" flex items-center gap-4">
-              <div className="relative w-16 h-16 bg-gray-100 rounded-full overflow-hidden">
+              <div className="relative w-24 h-24 bg-gray-100 rounded-full overflow-hidden">
                 {(profileImagePreview || user.profileImage) && (
                   <Image
                     src={profileImagePreview || user.profileImage!}
                     alt={`${user.fullName}'s profile picture`}
-                    className="rounded-full w-16 h-16 object-cover"
+                    className="rounded-full w-full h-full object-cover "
                     width={64}
                     height={64}
                   />
@@ -195,9 +249,14 @@ const CustomerProfile: FC<{
                   <>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity"
+                      disabled={isCompressing}
+                      className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <MdCameraAlt className="size-6" />
+                      {isCompressing ? (
+                        <LoadingSpinner className="size-6 text-white" />
+                      ) : (
+                        <MdCameraAlt className="size-6" />
+                      )}
                     </button>
                     <input
                       ref={fileInputRef}

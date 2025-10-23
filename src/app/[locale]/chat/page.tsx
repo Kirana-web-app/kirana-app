@@ -18,7 +18,7 @@ const ChatPage: FC = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(storeId);
   const [chats, setChats] = useState<Chat[]>([]);
   const [chatsLoading, setChatsLoading] = useState(false);
-  const [showUserList, setShowUserList] = useState(true);
+  const [showUserList, setShowUserList] = useState(storeId ? false : true);
 
   // Real-time chats listener
   useEffect(() => {

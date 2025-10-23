@@ -114,14 +114,14 @@ const ChatWindow: FC<ChatWindowProps> = ({
   }, [messagesLoading, selectedChatId]);
 
   // Auto-scroll when new messages are added
-  // useEffect(() => {
-  //   // Small delay to ensure DOM has updated
-  //   const timer = setTimeout(() => {
-  //     viewRef.current?.scrollIntoView({ behavior: "smooth" });
-  //   }, 100);
+  useEffect(() => {
+    // Small delay to ensure DOM has updated
+    const timer = setTimeout(() => {
+      viewRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
 
-  //   return () => clearTimeout(timer);
-  // }, [messages.length]);
+    return () => clearTimeout(timer);
+  }, [messages.length]);
 
   // Transform messages to include isOwn and formatted timestamp
   const chatMessages = messages.map((message: MessageType) => ({

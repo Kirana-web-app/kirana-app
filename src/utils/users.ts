@@ -34,7 +34,7 @@ export const createStoreProfile = async (
     const userData = userDoc.data();
 
     // Create the store profile data combining user data with business profile data
-    const storeProfileData = {
+    const storeProfileData: Partial<Store> = {
       // Keep existing user data
       ...userData,
       // Update role to store
@@ -50,8 +50,7 @@ export const createStoreProfile = async (
         location: null,
       },
       storeName: data.storeName || null,
-      //   businessProfileImage: data.businessProfileImage || null,
-      profileImage: null,
+      profileImage: data.profileImage || null,
 
       // Add store-specific fields
       profileCreated: true,
