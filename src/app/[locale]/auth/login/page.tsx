@@ -188,7 +188,7 @@ const LoginPage: FC = () => {
             {/* Forgot Password */}
             <div className="flex justify-end">
               <Link
-                href="#"
+                href={ROUTES.AUTH.FORGOT_PASSWORD}
                 className="text-primary font-medium hover:underline text-sm"
               >
                 Forgot password?
