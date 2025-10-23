@@ -372,7 +372,7 @@ const CustomerProfile: FC<{
             </div>
             {userAuthenticated && (
               <Link
-                href={ROUTES.BAZAAR}
+                href={ROUTES.BAZAAR("saved")}
                 className="flex hover:bg-gray-50 px-4 rounded-xl items-center justify-between py-6"
               >
                 <div className="flex items-center gap-3">

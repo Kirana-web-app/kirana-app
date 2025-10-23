@@ -13,7 +13,7 @@ const navLinks = [
   {
     id: 1,
     label: "Bazaar",
-    href: ROUTES.BAZAAR,
+    href: ROUTES.BAZAAR("near"),
     icon: <CiShoppingBasket className="size-7" />,
   },
   {

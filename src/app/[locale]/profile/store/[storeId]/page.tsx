@@ -23,7 +23,7 @@ const StoreProfilePage: FC = () => {
   });
 
   const handleBackClick = () => {
-    router.push(ROUTES.BAZAAR);
+    router.push(ROUTES.BAZAAR("near"));
   };
 
   if (authLoading || isLoading) return <LoadingSpinner heightScreen />;

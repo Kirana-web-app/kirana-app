@@ -54,7 +54,7 @@ const UserList: FC<UserListProps> = ({
       <div className="flex items-center p-3 md:p-4 border-b border-gray-200">
         {/* Back Button */}
         <button
-          onClick={() => router.push(ROUTES.BAZAAR)}
+          onClick={() => router.push(ROUTES.BAZAAR("near"))}
           className="cursor-pointer hover:bg-gray-100 p-2 rounded-lg"
         >
           <MdOutlineArrowBackIosNew className="size-5" />

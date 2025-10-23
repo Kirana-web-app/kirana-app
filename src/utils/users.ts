@@ -327,3 +327,99 @@ const calcAvgs = async (storeId: string) => {
     console.error("Error calculating averages:", error);
   }
 };
+
+// savedStores array update
+
+export const saveStore = async (
+  customerId: string,
+  storeId: string
+): Promise<void> => {
+  if (!customerId || !storeId) {
+    throw new Error("Customer ID and Store ID must be provided");
+  }
+  try {
+    const customerDocRef = doc(db, "users", customerId);
+    const customerDoc = await getDoc(customerDocRef);
+    if (!customerDoc.exists()) {
+      throw new Error("Customer not found");
+    }
+    const customerData = customerDoc.data() as Customer;
+    const updatedSavedStores = customerData.savedStores
+      ? Array.from(new Set([...customerData.savedStores, storeId]))
+      : [storeId];
+    await updateDoc(customerDocRef, {
+      savedStores: updatedSavedStores,
+      updatedAt: serverTimestamp(),
+    });
+    console.log("Store saved successfully");
+  } catch (error) {
+    console.error("Error saving store:", error);
+    throw error;
+  }
+};
+
+export const unsaveStore = async (
+  customerId: string,
+  storeId: string
+): Promise<void> => {
+  if (!customerId || !storeId) {
+    throw new Error("Customer ID and Store ID must be provided");
+  }
+  try {
+    const customerDocRef = doc(db, "users", customerId);
+    const customerDoc = await getDoc(customerDocRef);
+    if (!customerDoc.exists()) {
+      throw new Error("Customer not found");
+    }
+    const customerData = customerDoc.data() as Customer;
+    const updatedSavedStores = customerData.savedStores
+      ? customerData.savedStores.filter((id) => id !== storeId)
+      : [];
+    await updateDoc(customerDocRef, {
+      savedStores: updatedSavedStores,
+      updatedAt: serverTimestamp(),
+    });
+    console.log("Store unsaved successfully");
+  } catch (error) {
+    console.error("Error unsaving store:", error);
+    throw error;
+  }
+};
+
+export const getSavedStores = async (
+  customerId: string
+): Promise<Store[] | null> => {
+  if (!customerId) {
+    throw new Error("Customer ID must be provided");
+  }
+  try {
+    const customerDocRef = doc(db, "users", customerId);
+    const customerDoc = await getDoc(customerDocRef);
+    if (!customerDoc.exists()) {
+      throw new Error("Customer not found");
+    }
+    const customerData = customerDoc.data() as Customer;
+    const savedStoreIds = customerData.savedStores || [];
+
+    if (savedStoreIds.length === 0) {
+      return [];
+    }
+
+    // fetch store details for each saved store ID in parallel using Promise.all and getStore function
+    const savedStores = await Promise.all(
+      savedStoreIds.map(async (storeId) => {
+        const store = await getStore(storeId);
+        return store;
+      })
+    );
+
+    if (!savedStores) {
+      return null;
+    }
+
+    return savedStores as Store[];
+  } catch (error) {
+    console.error("Error getting saved stores:", error);
+    throw error;
+  }
+};

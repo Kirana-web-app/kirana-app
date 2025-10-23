@@ -6,7 +6,7 @@ export const ROUTES = {
   },
   SET_LANGUAGE: "/set-language",
   SET_UP_BUSINESS_PROFILE: "/set-up-business-profile",
-  BAZAAR: "/bazaar",
+  BAZAAR: (tab?: "near" | "saved") => `/bazaar?tab=${tab ? tab : "near"}`,
   CHAT: (userId?: string) => (userId ? `/chat?id=${userId}` : "/chat"),
   PROFILE: {
     USER: (userId: string) => `/profile/user/${userId}`,

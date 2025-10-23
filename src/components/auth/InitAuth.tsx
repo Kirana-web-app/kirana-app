@@ -24,7 +24,7 @@ export default function InitAuth() {
     console.log("Auth initialized, current user:", user);
 
     if (user && redirectUser) {
-      router.push(ROUTES.BAZAAR);
+      router.push(ROUTES.BAZAAR("near"));
     }
   }, [user]);
 

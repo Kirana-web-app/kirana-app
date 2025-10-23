@@ -21,7 +21,7 @@ const useAuthRedirect = () => {
     }
 
     if (userData.role === "customer" || userData.role === "store") {
-      router.push(ROUTES.BAZAAR);
+      router.push(ROUTES.BAZAAR("near"));
       return;
     }
   }, [userData, router]);

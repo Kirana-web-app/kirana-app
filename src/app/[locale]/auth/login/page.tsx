@@ -65,7 +65,7 @@ const LoginPage: FC = () => {
         (userData.role === "store" && !userData.profileCreated)
       )
         router.push(ROUTES.SET_UP_BUSINESS_PROFILE);
-      else router.push(ROUTES.BAZAAR);
+      else router.push(ROUTES.BAZAAR("near"));
     }
   }, [userData]);
 

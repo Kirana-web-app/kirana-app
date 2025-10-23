@@ -26,7 +26,7 @@ const SetupBusinessProfile: FC<{
     }
     if (role === "customer") {
       await updateRole(user.uid, "customer");
-      router.push(ROUTES.BAZAAR);
+      router.push(ROUTES.BAZAAR("near"));
     }
   };
 

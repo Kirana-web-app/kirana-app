@@ -12,8 +12,8 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useState, useRef } from "react";
-import { GoBookmark } from "react-icons/go";
+import { FC, useState, useRef, useEffect } from "react";
+import { GoBookmark, GoBookmarkFill } from "react-icons/go";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import {
   MdOutlineArrowBackIosNew,
@@ -25,7 +25,12 @@ import {
 import { CiUser } from "react-icons/ci";
 import { Timestamp } from "firebase/firestore";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getStoreReviews, updateStore } from "@/src/utils/users";
+import {
+  getStoreReviews,
+  updateStore,
+  saveStore,
+  unsaveStore,
+} from "@/src/utils/users";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { deliveryRate } from "@/src/constants/deliverySpeeds";
 import GiveReview from "./GiveReview";
@@ -38,6 +43,7 @@ import {
   formatFileSize,
   CompressionResult,
 } from "@/src/utils/imageCompressor";
+import { Customer } from "@/src/types/user";
 
 const StoreProfile: FC<{
   storeData: Store;
@@ -54,6 +60,7 @@ const StoreProfile: FC<{
   const [creatingChat, setCreatingChat] = useState(false);
   const [togglingReadReceipts, setTogglingReadReceipts] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [isStoreSaved, setIsStoreSaved] = useState(false);
   const [editedStoreName, setEditedStoreName] = useState(
     storeData.storeName || ""
   );
@@ -90,6 +97,14 @@ const StoreProfile: FC<{
     staleTime: "static",
   });
 
+  // Check if store is saved by current user
+  useEffect(() => {
+    if (userData?.role === "customer") {
+      const customerData = userData as Customer;
+      setIsStoreSaved(customerData.savedStores?.includes(store.id) || false);
+    }
+  }, [userData, store.id]);
+
   // Mutation for updating store profile
   const updateStoreMutation = useMutation({
     mutationFn: (updateData: Partial<Store>) =>
@@ -119,6 +134,81 @@ const StoreProfile: FC<{
     onError: (error) => {
       console.error("Error updating store profile:", error);
       alert("Failed to update store profile. Please try again.");
+    },
+  });
+
+  // Mutations for save/unsave store
+  const saveStoreMutation = useMutation({
+    mutationFn: () => {
+      if (!userData?.id) throw new Error("User not authenticated");
+      return saveStore(userData.id, store.id);
+    },
+    onMutate: async () => {
+      // Optimistic update
+      setIsStoreSaved(true);
+    },
+    onSuccess: () => {
+      // Update authStore
+      if (userData?.role === "customer") {
+        const customerData = userData as Customer;
+        const updatedSavedStores = customerData.savedStores?.includes(store.id)
+          ? customerData.savedStores
+          : [...(customerData.savedStores || []), store.id];
+
+        const updatedUserData = {
+          ...customerData,
+          savedStores: updatedSavedStores,
+        };
+        setUserData(updatedUserData);
+
+        // Invalidate saved stores query if it exists
+        queryClient.invalidateQueries({
+          queryKey: ["savedStores", userData.id],
+        });
+      }
+    },
+    onError: (error) => {
+      // Rollback optimistic update
+      setIsStoreSaved(false);
+      console.error("Error saving store:", error);
+      alert("Failed to save store. Please try again.");
+    },
+  });
+
+  const unsaveStoreMutation = useMutation({
+    mutationFn: () => {
+      if (!userData?.id) throw new Error("User not authenticated");
+      return unsaveStore(userData.id, store.id);
+    },
+    onMutate: async () => {
+      // Optimistic update
+      setIsStoreSaved(false);
+    },
+    onSuccess: () => {
+      // Update authStore
+      if (userData?.role === "customer") {
+        const customerData = userData as Customer;
+        const updatedSavedStores = (customerData.savedStores || []).filter(
+          (id) => id !== store.id
+        );
+
+        const updatedUserData = {
+          ...customerData,
+          savedStores: updatedSavedStores,
+        };
+        setUserData(updatedUserData);
+
+        // Invalidate saved stores query if it exists
+        queryClient.invalidateQueries({
+          queryKey: ["savedStores", userData.id],
+        });
+      }
+    },
+    onError: (error) => {
+      // Rollback optimistic update
+      setIsStoreSaved(true);
+      console.error("Error unsaving store:", error);
+      alert("Failed to unsave store. Please try again.");
     },
   });
 
@@ -329,6 +419,26 @@ const StoreProfile: FC<{
     }
   };
 
+  const handleToggleSave = () => {
+    // Check if user is authenticated and is a customer
+    if (!userData || userData.role !== "customer") {
+      alert("Please log in as a customer to save stores.");
+      return;
+    }
+
+    // Don't allow saving own store
+    if (userAuthenticated) {
+      alert("You cannot save your own store.");
+      return;
+    }
+
+    if (isStoreSaved) {
+      unsaveStoreMutation.mutate();
+    } else {
+      saveStoreMutation.mutate();
+    }
+  };
+
   if (loggingOut) return <LoadingSpinner heightScreen />;
 
   return (
@@ -373,7 +483,6 @@ const StoreProfile: FC<{
                   </>
                 )}
               </div>
-
               {/* Back Button */}
               <div className="absolute top-6 left-4 text-white">
                 <button
@@ -396,53 +505,76 @@ const StoreProfile: FC<{
                     }
                   />
                 ) : (
-                  <div className=" text-primary font-medium bg-primary-lightest px-3 py-1 rounded-full">
+                  <div className=" text-white  bg-black/50 border-2 border-white/70 px-4 py-1 rounded-full">
                     {store.type}
                   </div>
                 )}
               </div>
-              <div className="absolute bottom-6 left-6 text-white space-y-1 w-80">
-                {isEditing && userAuthenticated ? (
-                  <div className="space-y-1 ">
-                    <Input
-                      label="Store Name"
-                      value={editedStoreName}
-                      onChange={(e) => setEditedStoreName(e.target.value)}
-                      placeholder="Store Name"
-                      className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
-                    />
-                    <Input
-                      value={editedOwnerName}
-                      onChange={(e) => setEditedOwnerName(e.target.value)}
-                      label="Owner Name"
-                      placeholder="Owner Name"
-                      className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
-                    />
-                    <Input
-                      value={editedPhoneNumber}
-                      onChange={(e) => setEditedPhoneNumber(e.target.value)}
-                      placeholder="Phone Number"
-                      label="Phone Number"
-                      type="tel"
-                      className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
-                    />
-                    <p className="text-white/80 text-sm">{store.email}</p>
-                  </div>
-                ) : (
-                  <>
-                    <h2 className="font-bold text-2xl store-name">
-                      {store.storeName ?? store.ownerName}
-                    </h2>
-                    <div className="">
-                      <p className="dynamic-content">
-                        Owned By <strong>{store.ownerName}</strong>
-                      </p>
-                      <p className="user-email">{store.email}</p>
-                      {store.phoneNumber && (
-                        <p className="user-email">{store.phoneNumber}</p>
-                      )}
+              <div className="absolute flex items-end justify-between bottom-6 px-6 text-white space-y-1 w-full">
+                <div className="w-80">
+                  {isEditing && userAuthenticated ? (
+                    <div className="space-y-1 ">
+                      <Input
+                        label="Store Name"
+                        value={editedStoreName}
+                        onChange={(e) => setEditedStoreName(e.target.value)}
+                        placeholder="Store Name"
+                        className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
+                      />
+                      <Input
+                        value={editedOwnerName}
+                        onChange={(e) => setEditedOwnerName(e.target.value)}
+                        label="Owner Name"
+                        placeholder="Owner Name"
+                        className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
+                      />
+                      <Input
+                        value={editedPhoneNumber}
+                        onChange={(e) => setEditedPhoneNumber(e.target.value)}
+                        placeholder="Phone Number"
+                        label="Phone Number"
+                        type="tel"
+                        className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
+                      />
+                      <p className="text-white/80 text-sm">{store.email}</p>
                     </div>
-                  </>
+                  ) : (
+                    <>
+                      <h2 className="font-bold text-2xl store-name">
+                        {store.storeName ?? store.ownerName}
+                      </h2>
+                      <div className="">
+                        <p className="dynamic-content">
+                          Owned By <strong>{store.ownerName}</strong>
+                        </p>
+                        <p className="user-email">{store.email}</p>
+                        {store.phoneNumber && (
+                          <p className="user-email">{store.phoneNumber}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+                {!userAuthenticated && userData?.role === "customer" && (
+                  <div className="pb-4">
+                    <button
+                      onClick={handleToggleSave}
+                      disabled={
+                        saveStoreMutation.isPending ||
+                        unsaveStoreMutation.isPending
+                      }
+                      className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {saveStoreMutation.isPending ||
+                      unsaveStoreMutation.isPending ? (
+                        <LoadingSpinner className="size-6 text-white" />
+                      ) : isStoreSaved ? (
+                        <GoBookmarkFill className="size-8 text-white" />
+                      ) : (
+                        <GoBookmark className="size-8 text-white hover:text-primary" />
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -481,21 +613,23 @@ const StoreProfile: FC<{
                     </Button>
                   )
                 ) : (
-                  <Button
-                    disabled={creatingChat}
-                    variant="secondary"
-                    fullWidth
-                    onClick={handleNewChat}
-                  >
-                    {creatingChat ? (
-                      <>
-                        {t("creatingChat")}
-                        <LoadingSpinner className="size-5 mx-4" />
-                      </>
-                    ) : (
-                      t("chatWithSeller")
-                    )}
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      disabled={creatingChat}
+                      variant="secondary"
+                      fullWidth
+                      onClick={handleNewChat}
+                    >
+                      {creatingChat ? (
+                        <>
+                          {t("creatingChat")}
+                          <LoadingSpinner className="size-5 mx-4" />
+                        </>
+                      ) : (
+                        t("chatWithSeller")
+                      )}
+                    </Button>
+                  </div>
                 )}
               </div>
               <div className="">
