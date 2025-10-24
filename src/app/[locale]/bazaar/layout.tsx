@@ -33,9 +33,14 @@ import {
   businessTypesUrdu,
 } from "@/src/data/businessTypes";
 import { useTranslations } from "next-intl";
+import useAuthStore from "@/src/stores/authStore";
+import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import Link from "next/link";
+import { ROUTES } from "@/src/constants/routes/routes";
 
 const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const { user, authLoading } = useAuthStore();
 
   const {
     searchQuery,
@@ -86,6 +91,19 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
       addBusinessType(value);
     }
   };
+
+  if (authLoading) return <LoadingSpinner />;
+
+  if (!user)
+    return (
+      <div className="flex flex-col py-20 items-center justify-center h-full">
+        <p className="text-lg">User not found</p>
+        <p>Please log in to continue.</p>
+        <Link href={ROUTES.AUTH.LOGIN} className="text-primary hover:underline">
+          Log in
+        </Link>
+      </div>
+    );
 
   return (
     <div className="">

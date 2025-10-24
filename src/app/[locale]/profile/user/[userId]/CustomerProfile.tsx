@@ -244,7 +244,7 @@ const CustomerProfile: FC<{
 
     try {
       await logOut();
-      router.push(ROUTES.AUTH.LOGIN);
+      router.push("/en/auth/login");
     } catch (error) {
       console.error("Error logging out:", error);
       setLoggingOut(false);

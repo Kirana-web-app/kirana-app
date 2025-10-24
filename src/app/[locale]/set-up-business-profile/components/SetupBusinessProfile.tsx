@@ -10,24 +10,47 @@ import { UserRole } from "@/src/types/user";
 import useAuthStore from "@/src/stores/authStore";
 import { useRouter } from "next/navigation";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { useMutation } from "@tanstack/react-query";
 
 const SetupBusinessProfile: FC<{
   setupProfile: Dispatch<SetStateAction<number>>;
 }> = ({ setupProfile }) => {
-  const { user, userData, authLoading } = useAuthStore();
+  const { user, userData, authLoading, setUserData } = useAuthStore();
   const t = useTranslations("SetUpBusinessProfile");
   const router = useRouter();
 
+  // Mutation for updating user role
+  const updateRoleMutation = useMutation({
+    mutationFn: (role: UserRole) => {
+      if (!user) throw new Error("No user found");
+      return updateRole(user.uid, role);
+    },
+    onSuccess: (_, role) => {
+      // Update the userData in auth store with the new role
+      if (userData) {
+        const updatedUserData = {
+          ...userData,
+          role: role,
+        };
+        setUserData(updatedUserData);
+      }
+
+      // Navigate based on role
+      if (role === "store") {
+        setupProfile(1);
+      } else if (role === "customer") {
+        router.push(ROUTES.BAZAAR("near"));
+      }
+    },
+    onError: (error) => {
+      console.error("Error updating role:", error);
+      alert("Failed to update role. Please try again.");
+    },
+  });
+
   const handleRoleUpdate = async (role: UserRole) => {
     if (!user) return;
-    if (role === "store") {
-      await updateRole(user.uid, "store");
-      setupProfile(1);
-    }
-    if (role === "customer") {
-      await updateRole(user.uid, "customer");
-      router.push(ROUTES.BAZAAR("near"));
-    }
+    updateRoleMutation.mutate(role);
   };
 
   console.log(user, userData);
@@ -41,6 +64,9 @@ const SetupBusinessProfile: FC<{
   if (authLoading) return <LoadingSpinner heightScreen />;
 
   if (!user) return null;
+
+  if (updateRoleMutation.isPending)
+    return <LoadingSpinner className="" heightScreen />;
 
   return (
     <div className="flex flex-wrap-reverse content-end">
@@ -62,6 +88,7 @@ const SetupBusinessProfile: FC<{
               size="md"
               fullWidth
               onClick={() => handleRoleUpdate("store")}
+              disabled={updateRoleMutation.isPending}
             >
               {t("yes")}
             </Button>
@@ -70,6 +97,7 @@ const SetupBusinessProfile: FC<{
               size="md"
               fullWidth
               onClick={() => handleRoleUpdate("customer")}
+              disabled={updateRoleMutation.isPending}
             >
               {t("no")}
             </Button>

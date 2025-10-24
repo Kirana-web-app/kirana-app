@@ -13,9 +13,10 @@ import {
   getSavedStores,
 } from "@/src/utils/users";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useAuthStore from "@/src/stores/authStore";
 import { GoBookmark } from "react-icons/go";
+import { ROUTES } from "@/src/constants/routes/routes";
 
 type TabType = "nearYou" | "saved";
 
@@ -23,11 +24,20 @@ const BazaarPage: FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("nearYou");
   const [savedStores, setSavedStores] = useState<string[]>([]); // Optimistic saved store IDs
   const t = useTranslations("Bazaar");
-  const { userData } = useAuthStore();
+  const { userData, authLoading } = useAuthStore();
   const queryClient = useQueryClient();
 
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
+  const router = useRouter();
+
+  // useEffect(() => {
+  //   if (authLoading) return;
+
+  //   if (!userData) {
+  //     router.push(ROUTES.AUTH.LOGIN);
+  //   }
+  // }, [userData, router]);
 
   // Get filter state from Zustand store
   const filters = useFilterStore();
@@ -218,20 +228,7 @@ const BazaarPage: FC = () => {
         (!userData || userData.role !== "customer") ? (
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
-              {/* <svg
-                className="w-8 h-8 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg> */}
-              lol
+              <GoBookmark className="size-8" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               <span data-translated>{t("noSavedStores")}</span>

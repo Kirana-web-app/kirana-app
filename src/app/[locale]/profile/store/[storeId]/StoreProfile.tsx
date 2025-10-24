@@ -383,7 +383,7 @@ const StoreProfile: FC<{
     setLoggingOut(true);
     try {
       await logOut();
-      router.push(ROUTES.AUTH.LOGIN);
+      router.push("/en/auth/login");
     } catch (error) {
       console.error("Error during logout:", error);
       setLoggingOut(false);

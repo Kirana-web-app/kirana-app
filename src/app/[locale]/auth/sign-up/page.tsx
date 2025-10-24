@@ -51,8 +51,6 @@ const SignUpPage: FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  useAuthRedirect();
-
   const router = useRouter();
 
   const validateForm = (): boolean => {
@@ -153,7 +151,6 @@ const SignUpPage: FC = () => {
 
     try {
       // console.log("HO gaya sign up");
-
       await signUp(
         formData.fullName,
         formData.email,
@@ -176,6 +173,8 @@ const SignUpPage: FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  useAuthRedirect();
 
   if (authLoading || isSubmitting) return <LoadingSpinner heightScreen />;
 
