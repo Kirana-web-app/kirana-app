@@ -29,7 +29,7 @@ export default function GetStarted() {
                 </Link>
               </Button>
 
-              <div className="">
+              {/* <div className="">
                 <div className="relative opacity-30">
                   <div
                     aria-hidden="true"
@@ -83,11 +83,11 @@ export default function GetStarted() {
                       href={ROUTES.AUTH.LOGIN}
                       className="text-primary font-medium hover:underline"
                     >
-                      Sign in
+                      Log in
                     </Link>
                   </span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

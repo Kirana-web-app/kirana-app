@@ -465,7 +465,7 @@ const StoreProfile: FC<{
                     <button
                       onClick={() => fileInputRef.current?.click()}
                       disabled={isCompressing}
-                      className="absolute bottom-4 right-4 bg-primary text-white p-3 rounded-full hover:bg-primary-dark transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="cursor-pointer z-10 absolute bottom-4 right-4 bg-primary text-white p-3 rounded-full hover:bg-primary-dark transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isCompressing ? (
                         <LoadingSpinner className="size-6" />

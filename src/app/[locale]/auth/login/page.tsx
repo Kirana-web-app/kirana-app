@@ -20,7 +20,6 @@ import useAuthRedirect from "@/src/hooks/useAuthRedirect";
 interface LoginFormData {
   email: string;
   password: string;
-  role: "customer" | "store";
 }
 
 const LoginPage: FC = () => {
@@ -35,17 +34,7 @@ const LoginPage: FC = () => {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({ defaultValues: { role: "customer" } });
-
-  useEffect(() => {
-    if (user) {
-      router.push(ROUTES.BAZAAR);
-    }
-  }, [user, router]);
-
-  const onSubmit = async (data: LoginFormData) => {
-    // Clear any previous errors
-    setAuthError("");
+  } = useForm<LoginFormData>();
 
   const onSubmit = async (data: LoginFormData) => {
     // Clear any previous errors
@@ -55,6 +44,7 @@ const LoginPage: FC = () => {
 
     try {
       await logIn(data.email, data.password);
+      router.push(ROUTES.BAZAAR("near"));
     } catch (error: any) {
       console.error("Login error:", error);
 
