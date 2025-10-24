@@ -1,10 +1,14 @@
+"use client";
 import Image from "next/image";
 import GetStartedImg from "../../assets/images/get-started.jpg";
 import Link from "next/link";
 import { Button } from "@/src/components/UI/Button";
 import { ROUTES } from "@/src/constants/routes/routes";
+import useAuthRedirect from "@/src/hooks/useAuthRedirect";
 
 export default function GetStarted() {
+  useAuthRedirect();
+
   return (
     <>
       <div className="flex min-h-full flex-wrap-reverse content-between">
@@ -25,7 +29,7 @@ export default function GetStarted() {
                 </Link>
               </Button>
 
-              <div className="">
+              {/* <div className="">
                 <div className="relative opacity-30">
                   <div
                     aria-hidden="true"
@@ -79,11 +83,11 @@ export default function GetStarted() {
                       href={ROUTES.AUTH.LOGIN}
                       className="text-primary font-medium hover:underline"
                     >
-                      Sign in
+                      Log in
                     </Link>
                   </span>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

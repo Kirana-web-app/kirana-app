@@ -13,19 +13,19 @@ const navLinks = [
   {
     id: 1,
     label: "Bazaar",
-    href: ROUTES.BAZAAR,
+    href: ROUTES.BAZAAR("near"),
     icon: <CiShoppingBasket className="size-7" />,
   },
   {
     id: 2,
     label: "Chat",
-    href: ROUTES.CHAT,
+    href: ROUTES.CHAT(),
     icon: <IoChatbubblesOutline className="size-6" />,
   },
 ];
 
 const Navbar = () => {
-  const { user, userData, authLoading } = useAuthStore();
+  const { user, userData, authLoading, logOut } = useAuthStore();
 
   const profileLink = {
     label: "Profile",
@@ -36,6 +36,7 @@ const Navbar = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 lg:top-0 lg:bottom-auto bg-white py-1 border-t lg:border-t-0 lg:border-b border-gray-200 z-50">
+      {/* <button onClick={() => logOut()}>Log out</button> */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center  lg:justify-between items-center h-16">
           {/* Mobile/Tablet Navigation - Bottom */}

@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import useAuthStore from "@/src/stores/authStore";
 import { set } from "react-hook-form";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface ReviewProps {
   review: ReviewType;
@@ -22,6 +23,7 @@ interface ReviewProps {
 
 const Review: FC<ReviewProps> = ({ review, storeId, onReviewUpdated }) => {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const deleteModalRef = useRef<HTMLDialogElement>(null);
 
   const canEdit = user?.uid === review.userId;
@@ -38,6 +40,60 @@ const Review: FC<ReviewProps> = ({ review, storeId, onReviewUpdated }) => {
   const t = useTranslations("StoreProfile");
   const dr = useTranslations("Bazaar");
 
+  // Mutation for updating review
+  const updateReviewMutation = useMutation({
+    mutationFn: (updateData: {
+      comment: string;
+      rating: number;
+      deliverySpeed: DeliverySpeed;
+    }) => updateStoreReview(storeId, review.id, updateData),
+    onSuccess: () => {
+      // Invalidate and refetch reviews to show updated data immediately
+      queryClient.invalidateQueries({
+        queryKey: [`reviews_${storeId}`],
+        refetchType: "active",
+      });
+
+      // Also invalidate store query to update average ratings
+      queryClient.invalidateQueries({
+        queryKey: [`store_${storeId}`],
+        refetchType: "active",
+      });
+
+      setIsEditing(false);
+      onReviewUpdated?.();
+    },
+    onError: (error) => {
+      console.error("Error updating review:", error);
+      alert("Failed to update review. Please try again.");
+    },
+  });
+
+  // Mutation for deleting review
+  const deleteReviewMutation = useMutation({
+    mutationFn: () => deleteStoreReview(storeId, review.id),
+    onSuccess: () => {
+      // Invalidate and refetch reviews to remove deleted review immediately
+      queryClient.invalidateQueries({
+        queryKey: [`reviews_${storeId}`],
+        refetchType: "active",
+      });
+
+      // Also invalidate store query to update average ratings
+      queryClient.invalidateQueries({
+        queryKey: [`store_${storeId}`],
+        refetchType: "active",
+      });
+
+      deleteModalRef.current?.close();
+      onReviewUpdated?.();
+    },
+    onError: (error) => {
+      console.error("Error deleting review:", error);
+      alert("Failed to delete review. Please try again.");
+    },
+  });
+
   const deliverySpeedOptions = [
     { id: 1, name: dr("quickDelivery"), value: "1" },
     { id: 2, name: dr("fastDelivery"), value: "2" },
@@ -49,12 +105,9 @@ const Review: FC<ReviewProps> = ({ review, storeId, onReviewUpdated }) => {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await deleteStoreReview(storeId, review.id);
-      deleteModalRef.current?.close();
-      onReviewUpdated?.();
+      await deleteReviewMutation.mutateAsync();
     } catch (error) {
-      console.error("Error deleting review:", error);
-      alert("Failed to delete review. Please try again.");
+      // Error handled by mutation
     } finally {
       setIsDeleting(false);
     }
@@ -76,17 +129,13 @@ const Review: FC<ReviewProps> = ({ review, storeId, onReviewUpdated }) => {
 
     setSaving(true);
     try {
-      await updateStoreReview(storeId, review.id, {
+      await updateReviewMutation.mutateAsync({
         comment: editedComment.trim(),
         rating: editedRating,
         deliverySpeed: editedDeliverySpeed as DeliverySpeed,
       });
-
-      setIsEditing(false);
-      onReviewUpdated?.();
     } catch (error) {
-      console.error("Error updating review:", error);
-      alert("Failed to update review. Please try again.");
+      // Error handled by mutation
     } finally {
       setSaving(false);
     }
@@ -107,7 +156,7 @@ const Review: FC<ReviewProps> = ({ review, storeId, onReviewUpdated }) => {
         year: "2-digit",
       });
     }
-    return "N/A";
+    return "";
   };
 
   if (saving) return <LoadingSpinner />;

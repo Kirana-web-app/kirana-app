@@ -76,7 +76,7 @@ const SetUpBusinessProfilePage: FC = () => {
   // Setup React Hook Form
   const form = useForm<BusinessProfileFormData>({
     defaultValues: {
-      ownerName: "",
+      ownerName: userData?.fullName || "",
       businessType: "",
       location: {
         country: "Pakistan",
@@ -115,6 +115,11 @@ const SetUpBusinessProfilePage: FC = () => {
   useEffect(() => {
     if (userData?.profileCreated) {
       router.push(ROUTES.PROFILE.STORE(user!.uid));
+    }
+
+    // set ownerName to userData?.fullName
+    if (userData) {
+      form.setValue("ownerName", userData.fullName || "");
     }
   }, [userData]);
 
@@ -174,8 +179,8 @@ const SetUpBusinessProfilePage: FC = () => {
         case 4: // Step Four - validate storeName (optional, so always valid)
           isValid = await form.trigger("storeName");
           break;
-        case 5: // Step Five - validate businessProfileImage
-          isValid = await form.trigger("businessProfileImage");
+        case 5: // Step Five - validate profileImage
+          isValid = await form.trigger("profileImage");
           break;
         case 6: // Step Six - final review, no validation needed
           isValid = true;

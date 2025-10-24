@@ -88,6 +88,7 @@
     "editProfile": "Edit Profile",
     "storeRating": "Store Rating",
     "chatWithSeller": "Chat with Seller",
+    "creatingChat": "Creating Chat",
     "deliveryRate": "Delivery Speed",
     "address": "Address",
     "reviews": "Reviews",
@@ -116,7 +117,8 @@
     "selectConversation": "Select a conversation",
     "chooseCustomer": "Choose a customer from the sidebar to start chatting.",
     "online": "Online",
-    "lastSeen": "Last seen"
+    "lastSeen": "Last seen",
+    "noConversationsFound": "No conversations found. Search for a Store to start a chat."
   },
   "Bazaar": {
     "nearYou": "Near You",

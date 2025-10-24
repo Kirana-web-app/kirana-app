@@ -7,21 +7,17 @@ import { DeliverySpeed, Review } from "@/src/types/user";
 import { addStoreReview } from "@/src/utils/users";
 import { useTranslations } from "next-intl";
 import { FC, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { serverTimestamp } from "firebase/firestore";
 
 interface GiveReviewProps {
   storeId: string;
-  //   userId: string;
-  //   userName: string;
-
-  //   onSubmitReview?: (review: {
-  //     rating: number;
-  //     comment: string;
-  //     deliverySpeed?: string | null;
-  //   }) => void;
+  closeEditor: () => void;
 }
 
-const GiveReview: FC<GiveReviewProps> = ({ storeId }) => {
+const GiveReview: FC<GiveReviewProps> = ({ storeId, closeEditor }) => {
   const { userData } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const [rating, setRating] = useState<number>(0);
   const [comment, setComment] = useState<string>("");
@@ -30,6 +26,80 @@ const GiveReview: FC<GiveReviewProps> = ({ storeId }) => {
   const t = useTranslations("StoreProfile");
 
   const dr = useTranslations("Bazaar");
+
+  // Mutation for adding review
+  const addReviewMutation = useMutation({
+    mutationFn: (reviewData: {
+      userId: string;
+      userName: string;
+      rating: number;
+      comment: string;
+      deliverySpeed: DeliverySpeed;
+    }) => addStoreReview(storeId, reviewData),
+    onMutate: async (newReview) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: [`reviews_${storeId}`] });
+
+      // Snapshot the previous value
+      const previousReviews = queryClient.getQueryData([`reviews_${storeId}`]);
+
+      // Optimistically update to the new value
+      queryClient.setQueryData([`reviews_${storeId}`], (old: any) => {
+        if (!old) return old;
+        const optimisticReview = {
+          id: `temp-${Date.now()}`,
+          userId: newReview.userId,
+          userName: newReview.userName,
+          rating: newReview.rating,
+          comment: newReview.comment,
+          deliverySpeed: newReview.deliverySpeed,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
+        return [...old, optimisticReview];
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousReviews };
+    },
+    onSuccess: () => {
+      // Reset form and close editor
+      setRating(0);
+      setComment("");
+      setDeliverySpeed(null);
+      setIsSubmitting(false);
+
+      // Refetch to get the real data from server
+      queryClient.invalidateQueries({
+        queryKey: [`reviews_${storeId}`],
+        refetchType: "active",
+      });
+
+      // Also invalidate store query to update average ratings
+      queryClient.invalidateQueries({
+        queryKey: [`store_${storeId}`],
+        refetchType: "active",
+      });
+
+      // Close the review form
+      closeEditor();
+    },
+    onError: (error, newReview, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData(
+        [`reviews_${storeId}`],
+        context?.previousReviews
+      );
+
+      console.error("Error submitting review:", error);
+      alert("Failed to submit review. Please try again.");
+      setIsSubmitting(false);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: [`reviews_${storeId}`] });
+    },
+  });
 
   const deliveryRate = [
     { id: 1, name: dr("quickDelivery"), value: "1" },
@@ -60,27 +130,26 @@ const GiveReview: FC<GiveReviewProps> = ({ storeId }) => {
 
     setIsSubmitting(true);
 
-    try {
-      await addStoreReview(storeId, {
-        userId: userData.id,
-        userName: userData.fullName,
-        rating,
-        comment: comment.trim(),
-        deliverySpeed: deliverySpeed as unknown as DeliverySpeed,
-      });
-
-      // Reset form after successful submission
-      setRating(0);
-      setComment("");
-      setDeliverySpeed(null);
-    } catch (error) {
-      console.error("Error submitting review:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Use the mutation directly
+    addReviewMutation.mutate({
+      userId: userData.id,
+      userName: userData.fullName,
+      rating,
+      comment: comment.trim(),
+      deliverySpeed: deliverySpeed as unknown as DeliverySpeed,
+    });
   };
 
-  if (isSubmitting) return <div>Submitting...</div>;
+  if (isSubmitting || addReviewMutation.isPending) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <p className="text-sm text-gray-600">Submitting review...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="">
@@ -150,12 +219,27 @@ const GiveReview: FC<GiveReviewProps> = ({ storeId }) => {
         <Button
           type="submit"
           fullWidth
-          disabled={isSubmitting || rating === 0 || comment.trim() === ""}
+          disabled={
+            isSubmitting ||
+            addReviewMutation.isPending ||
+            rating === 0 ||
+            comment.trim() === ""
+          }
           className="my-4"
         >
           <span data-translated>
-            {isSubmitting ? t("submittingReview") : t("submitReview")}
+            {isSubmitting || addReviewMutation.isPending
+              ? t("submittingReview")
+              : t("submitReview")}
           </span>
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => closeEditor()}
+          fullWidth
+          disabled={isSubmitting || addReviewMutation.isPending}
+        >
+          Cancel
         </Button>
       </form>
     </div>

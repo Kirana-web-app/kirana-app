@@ -1,20 +1,33 @@
 "use client";
-import { FC, useState, useMemo } from "react";
+import { FC, useState, useMemo, use, useEffect } from "react";
 import StoreCard from "./components/StoreCard";
-import { Store } from "@/src/types/user";
+import { Store, Customer } from "@/src/types/user";
 import { useFilterStore } from "@/src/stores/filterStore";
 import { filterStores } from "@/src/utils/filterUtils";
 import { useTranslations } from "next-intl";
-import { useQuery } from "@tanstack/react-query";
-import { getStores } from "@/src/utils/users";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getStores,
+  saveStore,
+  unsaveStore,
+  getSavedStores,
+} from "@/src/utils/users";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import { useSearchParams } from "next/navigation";
+import useAuthStore from "@/src/stores/authStore";
+import { GoBookmark } from "react-icons/go";
 
 type TabType = "nearYou" | "saved";
 
 const BazaarPage: FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>("nearYou");
-  const [savedStores, setSavedStores] = useState<string[]>(["2"]); // Mock saved store IDs
+  const [savedStores, setSavedStores] = useState<string[]>([]); // Optimistic saved store IDs
   const t = useTranslations("Bazaar");
+  const { userData } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab");
 
   // Get filter state from Zustand store
   const filters = useFilterStore();
@@ -25,35 +38,148 @@ const BazaarPage: FC = () => {
     staleTime: 10 * 60 * 1000, // 10 minutes
   });
 
+  // Fetch saved stores for customers when on saved tab
+  const { data: savedStoresList, isLoading: savedStoresLoading } = useQuery({
+    queryKey: ["savedStores", userData?.id],
+    queryFn: () => {
+      if (!userData?.id || userData.role !== "customer") return null;
+      return getSavedStores(userData.id);
+    },
+    enabled:
+      !!userData?.id && userData.role === "customer" && activeTab === "saved",
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Initialize saved stores from user data
+  useEffect(() => {
+    if (userData?.role === "customer") {
+      const customerData = userData as Customer;
+      if (customerData.savedStores) {
+        setSavedStores(customerData.savedStores);
+      }
+    }
+  }, [userData]);
+
+  // Mutations for save/unsave stores
+  const saveStoreMutation = useMutation({
+    mutationFn: (storeId: string) => {
+      if (!userData?.id) throw new Error("User not authenticated");
+      return saveStore(userData.id, storeId);
+    },
+    onMutate: async (storeId) => {
+      // Optimistic update
+      setSavedStores((prev) =>
+        prev.includes(storeId) ? prev : [...prev, storeId]
+      );
+    },
+    onSuccess: (_, storeId) => {
+      // Update authStore
+      if (userData?.role === "customer") {
+        const customerData = userData as Customer;
+        const updatedSavedStores = customerData.savedStores?.includes(storeId)
+          ? customerData.savedStores
+          : [...(customerData.savedStores || []), storeId];
+
+        const updatedUserData = {
+          ...customerData,
+          savedStores: updatedSavedStores,
+        };
+        useAuthStore.getState().setUserData(updatedUserData);
+
+        // Invalidate saved stores query to refetch updated data
+        queryClient.invalidateQueries({
+          queryKey: ["savedStores", userData.id],
+        });
+      }
+    },
+    onError: (error, storeId) => {
+      // Rollback optimistic update
+      setSavedStores((prev) => prev.filter((id) => id !== storeId));
+      console.error("Error saving store:", error);
+      alert("Failed to save store. Please try again.");
+    },
+  });
+
+  const unsaveStoreMutation = useMutation({
+    mutationFn: (storeId: string) => {
+      if (!userData?.id) throw new Error("User not authenticated");
+      return unsaveStore(userData.id, storeId);
+    },
+    onMutate: async (storeId) => {
+      // Optimistic update
+      setSavedStores((prev) => prev.filter((id) => id !== storeId));
+    },
+    onSuccess: (_, storeId) => {
+      // Update authStore
+      if (userData?.role === "customer") {
+        const customerData = userData as Customer;
+        const updatedSavedStores = (customerData.savedStores || []).filter(
+          (id) => id !== storeId
+        );
+
+        const updatedUserData = {
+          ...customerData,
+          savedStores: updatedSavedStores,
+        };
+        useAuthStore.getState().setUserData(updatedUserData);
+
+        // Invalidate saved stores query to refetch updated data
+        queryClient.invalidateQueries({
+          queryKey: ["savedStores", userData.id],
+        });
+      }
+    },
+    onError: (error, storeId) => {
+      // Rollback optimistic update
+      setSavedStores((prev) =>
+        prev.includes(storeId) ? prev : [...prev, storeId]
+      );
+      console.error("Error unsaving store:", error);
+      alert("Failed to unsave store. Please try again.");
+    },
+  });
+
+  useEffect(() => {
+    if (tab === "saved" || tab === "near") {
+      setActiveTab(tab === "saved" ? "saved" : "nearYou");
+    }
+  }, [tab]);
+
   // Apply filters to stores
   const getFilteredStores = useMemo(() => {
     // First filter by tab (nearYou vs saved)
-    const tabFilteredStores =
-      activeTab === "nearYou"
-        ? store
-        : store?.filter((storeItem) => savedStores.includes(storeItem.id));
+    const tabFilteredStores = activeTab === "nearYou" ? store : savedStoresList; // Use fetched saved stores list instead of filtering
 
     // Then apply search and filter criteria
     if (tabFilteredStores) return filterStores(tabFilteredStores, filters);
-  }, [store, activeTab, savedStores, filters]);
+  }, [store, savedStoresList, activeTab, filters]);
 
   const filteredStores = getFilteredStores;
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    //update query param
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tab === "saved" ? "saved" : "near");
+    window.history.replaceState({}, "", url.toString());
   };
 
   const handleToggleSave = (storeId: string) => {
-    setSavedStores((prev) =>
-      prev.includes(storeId)
-        ? prev.filter((id) => id !== storeId)
-        : [...prev, storeId]
-    );
+    // Check if user is authenticated and is a customer
+    if (!userData || userData.role !== "customer") {
+      alert("Please log in as a customer to save stores.");
+      return;
+    }
+
+    if (savedStores.includes(storeId)) {
+      unsaveStoreMutation.mutate(storeId);
+    } else {
+      saveStoreMutation.mutate(storeId);
+    }
   };
 
-  console.log("stores", store);
-
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading || (activeTab === "saved" && savedStoresLoading))
+    return <LoadingSpinner />;
 
   return (
     <div className="">
@@ -87,7 +213,34 @@ const BazaarPage: FC = () => {
 
       {/* Content */}
       <div className="py-6">
-        {filteredStores && filteredStores.length > 0 ? (
+        {/* Show login prompt for saved tab if user is not a customer */}
+        {activeTab === "saved" &&
+        (!userData || userData.role !== "customer") ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
+              {/* <svg
+                className="w-8 h-8 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg> */}
+              lol
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <span data-translated>{t("noSavedStores")}</span>
+            </h3>
+            <p className="text-gray-500 text-center max-w-md">
+              <span data-translated>{t("saveStoresMessage")}</span>
+            </p>
+          </div>
+        ) : filteredStores && filteredStores.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {filteredStores.map((storeItem, index) => (
               <StoreCard
@@ -95,6 +248,12 @@ const BazaarPage: FC = () => {
                 store={storeItem}
                 isSaved={savedStores.includes(storeItem.id)}
                 onToggleSave={handleToggleSave}
+                isToggling={
+                  (saveStoreMutation.isPending &&
+                    saveStoreMutation.variables === storeItem.id) ||
+                  (unsaveStoreMutation.isPending &&
+                    unsaveStoreMutation.variables === storeItem.id)
+                }
               />
             ))}
           </div>
@@ -102,19 +261,7 @@ const BazaarPage: FC = () => {
           <div className="flex flex-col items-center justify-center py-16">
             <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
               {activeTab === "saved" ? (
-                <svg
-                  className="w-8 h-8 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                  />
-                </svg>
+                <GoBookmark className="size-8" />
               ) : (
                 <svg
                   className="w-8 h-8 text-gray-400"

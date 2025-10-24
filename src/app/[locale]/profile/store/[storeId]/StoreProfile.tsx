@@ -12,8 +12,8 @@ import {
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { FC, useState, useRef } from "react";
-import { GoBookmark } from "react-icons/go";
+import { FC, useState, useRef, useEffect } from "react";
+import { GoBookmark, GoBookmarkFill } from "react-icons/go";
 import { IoCheckmarkDoneOutline } from "react-icons/io5";
 import {
   MdOutlineArrowBackIosNew,
@@ -24,25 +24,43 @@ import {
 } from "react-icons/md";
 import { CiUser } from "react-icons/ci";
 import { Timestamp } from "firebase/firestore";
-import { useQuery } from "@tanstack/react-query";
-import { getStoreReviews, updateStore } from "@/src/utils/users";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getStoreReviews,
+  updateStore,
+  saveStore,
+  unsaveStore,
+} from "@/src/utils/users";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { deliveryRate } from "@/src/constants/deliverySpeeds";
 import GiveReview from "./GiveReview";
 import Review from "./Review";
 import useAuthStore from "@/src/stores/authStore";
+import { createNewChat } from "@/src/utils/chat";
+import {
+  compressImage,
+  COMPRESSION_PRESETS,
+  formatFileSize,
+  CompressionResult,
+} from "@/src/utils/imageCompressor";
+import { Customer } from "@/src/types/user";
 
 const StoreProfile: FC<{
   storeData: Store;
   handleBackClick: () => void;
   userAuthenticated: boolean;
 }> = ({ storeData, handleBackClick, userAuthenticated }) => {
-  const { user } = useAuthStore();
+  const { user, userData, logOut, setUserData } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const [store, setStore] = useState(storeData);
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [creatingChat, setCreatingChat] = useState(false);
+  const [togglingReadReceipts, setTogglingReadReceipts] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [isStoreSaved, setIsStoreSaved] = useState(false);
   const [editedStoreName, setEditedStoreName] = useState(
     storeData.storeName || ""
   );
@@ -58,6 +76,12 @@ const StoreProfile: FC<{
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
     null
   );
+  const [compressedImageData, setCompressedImageData] = useState<string | null>(
+    null
+  );
+  const [compressionInfo, setCompressionInfo] =
+    useState<CompressionResult | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const t = useTranslations("StoreProfile");
@@ -73,23 +97,144 @@ const StoreProfile: FC<{
     staleTime: "static",
   });
 
+  // Check if store is saved by current user
+  useEffect(() => {
+    if (userData?.role === "customer") {
+      const customerData = userData as Customer;
+      setIsStoreSaved(customerData.savedStores?.includes(store.id) || false);
+    }
+  }, [userData, store.id]);
+
+  // Mutation for updating store profile
+  const updateStoreMutation = useMutation({
+    mutationFn: (updateData: Partial<Store>) =>
+      updateStore(store.id, updateData),
+    onSuccess: (_, variables) => {
+      // Update the store query cache
+      queryClient.setQueryData(
+        [`store_${store.id}`],
+        (oldData: Store | undefined) => {
+          if (!oldData) return oldData;
+          return { ...oldData, ...variables };
+        }
+      );
+
+      // Update local state
+      setStore((prev) => ({ ...prev, ...variables }));
+
+      // IMPORTANT: Update authStore if this is the authenticated user
+      if (userAuthenticated) {
+        setUserData({ ...store, ...variables } as Store);
+      }
+
+      // Invalidate any queries that might display store info (like bazaar, chats, reviews, etc.)
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+    },
+    onError: (error) => {
+      console.error("Error updating store profile:", error);
+      alert("Failed to update store profile. Please try again.");
+    },
+  });
+
+  // Mutations for save/unsave store
+  const saveStoreMutation = useMutation({
+    mutationFn: () => {
+      if (!userData?.id) throw new Error("User not authenticated");
+      return saveStore(userData.id, store.id);
+    },
+    onMutate: async () => {
+      // Optimistic update
+      setIsStoreSaved(true);
+    },
+    onSuccess: () => {
+      // Update authStore
+      if (userData?.role === "customer") {
+        const customerData = userData as Customer;
+        const updatedSavedStores = customerData.savedStores?.includes(store.id)
+          ? customerData.savedStores
+          : [...(customerData.savedStores || []), store.id];
+
+        const updatedUserData = {
+          ...customerData,
+          savedStores: updatedSavedStores,
+        };
+        setUserData(updatedUserData);
+
+        // Invalidate saved stores query if it exists
+        queryClient.invalidateQueries({
+          queryKey: ["savedStores", userData.id],
+        });
+      }
+    },
+    onError: (error) => {
+      // Rollback optimistic update
+      setIsStoreSaved(false);
+      console.error("Error saving store:", error);
+      alert("Failed to save store. Please try again.");
+    },
+  });
+
+  const unsaveStoreMutation = useMutation({
+    mutationFn: () => {
+      if (!userData?.id) throw new Error("User not authenticated");
+      return unsaveStore(userData.id, store.id);
+    },
+    onMutate: async () => {
+      // Optimistic update
+      setIsStoreSaved(false);
+    },
+    onSuccess: () => {
+      // Update authStore
+      if (userData?.role === "customer") {
+        const customerData = userData as Customer;
+        const updatedSavedStores = (customerData.savedStores || []).filter(
+          (id) => id !== store.id
+        );
+
+        const updatedUserData = {
+          ...customerData,
+          savedStores: updatedSavedStores,
+        };
+        setUserData(updatedUserData);
+
+        // Invalidate saved stores query if it exists
+        queryClient.invalidateQueries({
+          queryKey: ["savedStores", userData.id],
+        });
+      }
+    },
+    onError: (error) => {
+      // Rollback optimistic update
+      setIsStoreSaved(true);
+      console.error("Error unsaving store:", error);
+      alert("Failed to unsave store. Please try again.");
+    },
+  });
+
   const languageOptions = [
     {
       value: "en",
       label: t("english"),
       onClick: async () => {
-        setStore({ ...store, defaultLanguage: "en" });
-        await updateStore(store.id, { defaultLanguage: "en" });
-        router.push(`/en${ROUTES.PROFILE.STORE(store.id)}`);
+        try {
+          await updateStoreMutation.mutateAsync({ defaultLanguage: "en" });
+          router.push(`/en${ROUTES.PROFILE.STORE(store.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
     {
       value: "ur",
       label: t("urdu"),
       onClick: async () => {
-        setStore({ ...store, defaultLanguage: "ur" });
-        await updateStore(store.id, { defaultLanguage: "ur" });
-        router.push(`/ur${ROUTES.PROFILE.STORE(store.id)}`);
+        try {
+          await updateStoreMutation.mutateAsync({ defaultLanguage: "ur" });
+          router.push(`/ur${ROUTES.PROFILE.STORE(store.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
   ];
@@ -103,6 +248,8 @@ const StoreProfile: FC<{
     setEditedAddress(store.address.addressLine);
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
   const handleCancelEdit = () => {
@@ -114,17 +261,60 @@ const StoreProfile: FC<{
     setEditedAddress(store.address.addressLine);
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setProfileImageFile(file);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 10MB before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Please select an image smaller than 10MB");
+      return;
+    }
+
+    setProfileImageFile(file);
+    setIsCompressing(true);
+
+    try {
+      // Create preview for immediate display
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Compress image for Firestore storage
+      const compressionResult = await compressImage(
+        file,
+        COMPRESSION_PRESETS.SMALL
+      );
+
+      setCompressedImageData(compressionResult.compressedImage);
+      setCompressionInfo(compressionResult);
+
+      console.log("Image compressed successfully:", {
+        originalSize: formatFileSize(compressionResult.originalSize),
+        compressedSize: formatFileSize(compressionResult.compressedSize),
+        compressionRatio: `${compressionResult.compressionRatio.toFixed(1)}%`,
+      });
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      alert("Failed to process image. Please try a different image.");
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -163,40 +353,93 @@ const StoreProfile: FC<{
         },
       };
 
-      // TODO: Upload image to Firebase Storage if profileImageFile exists
-      if (profileImageFile && profileImagePreview) {
-        console.log("Image file selected:", profileImageFile.name);
-
-        // updateData.profileImage = profileImagePreview;
+      // Save compressed image to Firestore
+      if (compressedImageData) {
+        updateData.profileImage = compressedImageData;
+        console.log("Saving compressed image to Firestore:", {
+          size: formatFileSize(compressionInfo?.compressedSize || 0),
+          compression: `${compressionInfo?.compressionRatio.toFixed(1)}%`,
+        });
       }
 
-      await updateStore(store.id, updateData);
-
-      setStore({
-        ...store,
-        ownerName: editedOwnerName.trim(),
-        storeName: editedStoreName.trim() || null,
-        phoneNumber: editedPhoneNumber.trim() || null,
-        type: editedStoreType.trim(),
-        address: {
-          ...store.address,
-          addressLine: editedAddress.trim(),
-        },
-        profileImage: profileImagePreview || store.profileImage,
-      });
+      // Use mutation instead of direct update
+      await updateStoreMutation.mutateAsync(updateData);
 
       setIsEditing(false);
       setProfileImageFile(null);
       setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
 
       console.log("Store profile updated successfully");
     } catch (error) {
       console.error("Error updating store profile:", error);
-      alert("Failed to update store profile. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await logOut();
+      router.push(ROUTES.AUTH.LOGIN);
+    } catch (error) {
+      console.error("Error during logout:", error);
+      setLoggingOut(false);
+    }
+  };
+
+  const handleNewChat = async () => {
+    if (!userData) return;
+
+    setCreatingChat(true);
+    try {
+      if (userData.userChatList?.includes(store.id)) {
+        router.push(ROUTES.CHAT(store.id));
+      } else {
+        await createNewChat(
+          {
+            id: userData.id,
+            name: userData.fullName,
+            avatar: userData.profileImage || "",
+          },
+          {
+            id: store.id,
+            name: store.storeName || store.ownerName,
+            avatar: store.profileImage || "",
+          }
+        );
+        router.push(ROUTES.CHAT(store.id));
+      }
+    } catch (error) {
+      console.error("Error creating new chat:", error);
+    } finally {
+      setCreatingChat(false);
+    }
+  };
+
+  const handleToggleSave = () => {
+    // Check if user is authenticated and is a customer
+    if (!userData || userData.role !== "customer") {
+      alert("Please log in as a customer to save stores.");
+      return;
+    }
+
+    // Don't allow saving own store
+    if (userAuthenticated) {
+      alert("You cannot save your own store.");
+      return;
+    }
+
+    if (isStoreSaved) {
+      unsaveStoreMutation.mutate();
+    } else {
+      saveStoreMutation.mutate();
+    }
+  };
+
+  if (loggingOut) return <LoadingSpinner heightScreen />;
 
   return (
     <div className="pb-6">
@@ -221,9 +464,14 @@ const StoreProfile: FC<{
                   <>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-4 right-4 bg-primary text-white p-3 rounded-full hover:bg-primary-dark transition-colors shadow-lg"
+                      disabled={isCompressing}
+                      className="cursor-pointer z-10 absolute bottom-4 right-4 bg-primary text-white p-3 rounded-full hover:bg-primary-dark transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <MdCameraAlt className="size-6" />
+                      {isCompressing ? (
+                        <LoadingSpinner className="size-6" />
+                      ) : (
+                        <MdCameraAlt className="size-6" />
+                      )}
                     </button>
                     <input
                       ref={fileInputRef}
@@ -235,7 +483,6 @@ const StoreProfile: FC<{
                   </>
                 )}
               </div>
-
               {/* Back Button */}
               <div className="absolute top-6 left-4 text-white">
                 <button
@@ -258,53 +505,76 @@ const StoreProfile: FC<{
                     }
                   />
                 ) : (
-                  <div className=" text-primary font-medium bg-primary-lightest px-3 py-1 rounded-full">
+                  <div className=" text-white  bg-black/50 border-2 border-white/70 px-4 py-1 rounded-full">
                     {store.type}
                   </div>
                 )}
               </div>
-              <div className="absolute bottom-6 left-6 text-white space-y-1 w-80">
-                {isEditing && userAuthenticated ? (
-                  <div className="space-y-1 ">
-                    <Input
-                      label="Store Name"
-                      value={editedStoreName}
-                      onChange={(e) => setEditedStoreName(e.target.value)}
-                      placeholder="Store Name"
-                      className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
-                    />
-                    <Input
-                      value={editedOwnerName}
-                      onChange={(e) => setEditedOwnerName(e.target.value)}
-                      label="Owner Name"
-                      placeholder="Owner Name"
-                      className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
-                    />
-                    <Input
-                      value={editedPhoneNumber}
-                      onChange={(e) => setEditedPhoneNumber(e.target.value)}
-                      placeholder="Phone Number"
-                      label="Phone Number"
-                      type="tel"
-                      className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
-                    />
-                    <p className="text-white/80 text-sm">{store.email}</p>
-                  </div>
-                ) : (
-                  <>
-                    <h2 className="font-bold text-2xl store-name">
-                      {store.storeName ?? store.ownerName}
-                    </h2>
-                    <div className="">
-                      <p className="dynamic-content">
-                        Owned By <strong>{store.ownerName}</strong>
-                      </p>
-                      <p className="user-email">{store.email}</p>
-                      {store.phoneNumber && (
-                        <p className="user-email">{store.phoneNumber}</p>
-                      )}
+              <div className="absolute flex items-end justify-between bottom-6 px-6 text-white space-y-1 w-full">
+                <div className="w-80">
+                  {isEditing && userAuthenticated ? (
+                    <div className="space-y-1 ">
+                      <Input
+                        label="Store Name"
+                        value={editedStoreName}
+                        onChange={(e) => setEditedStoreName(e.target.value)}
+                        placeholder="Store Name"
+                        className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
+                      />
+                      <Input
+                        value={editedOwnerName}
+                        onChange={(e) => setEditedOwnerName(e.target.value)}
+                        label="Owner Name"
+                        placeholder="Owner Name"
+                        className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
+                      />
+                      <Input
+                        value={editedPhoneNumber}
+                        onChange={(e) => setEditedPhoneNumber(e.target.value)}
+                        placeholder="Phone Number"
+                        label="Phone Number"
+                        type="tel"
+                        className="!p-2 bg-white/70 border-white/30 placeholder-black/70"
+                      />
+                      <p className="text-white/80 text-sm">{store.email}</p>
                     </div>
-                  </>
+                  ) : (
+                    <>
+                      <h2 className="font-bold text-2xl store-name">
+                        {store.storeName ?? store.ownerName}
+                      </h2>
+                      <div className="">
+                        <p className="dynamic-content">
+                          Owned By <strong>{store.ownerName}</strong>
+                        </p>
+                        <p className="user-email">{store.email}</p>
+                        {store.phoneNumber && (
+                          <p className="user-email">{store.phoneNumber}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+                {!userAuthenticated && userData?.role === "customer" && (
+                  <div className="pb-4">
+                    <button
+                      onClick={handleToggleSave}
+                      disabled={
+                        saveStoreMutation.isPending ||
+                        unsaveStoreMutation.isPending
+                      }
+                      className="cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {saveStoreMutation.isPending ||
+                      unsaveStoreMutation.isPending ? (
+                        <LoadingSpinner className="size-6 text-white" />
+                      ) : isStoreSaved ? (
+                        <GoBookmarkFill className="size-8 text-white" />
+                      ) : (
+                        <GoBookmark className="size-8 text-white hover:text-primary" />
+                      )}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
@@ -343,9 +613,23 @@ const StoreProfile: FC<{
                     </Button>
                   )
                 ) : (
-                  <Button variant="secondary" fullWidth>
-                    {t("chatWithSeller")}
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      disabled={creatingChat}
+                      variant="secondary"
+                      fullWidth
+                      onClick={handleNewChat}
+                    >
+                      {creatingChat ? (
+                        <>
+                          {t("creatingChat")}
+                          <LoadingSpinner className="size-5 mx-4" />
+                        </>
+                      ) : (
+                        t("chatWithSeller")
+                      )}
+                    </Button>
+                  </div>
                 )}
               </div>
               <div className="">
@@ -422,14 +706,10 @@ const StoreProfile: FC<{
                   </Button>
                 ) : (
                   <div className="space-y-1">
-                    <GiveReview storeId={store.id} />
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowReviewForm(false)}
-                      fullWidth
-                    >
-                      Cancel
-                    </Button>
+                    <GiveReview
+                      storeId={store.id}
+                      closeEditor={() => setShowReviewForm(false)}
+                    />
                   </div>
                 )}
               </div>
@@ -482,17 +762,28 @@ const StoreProfile: FC<{
                     <span>{t("readReceipts")}</span>
                   </div>
                   <Toggle
+                    isLoading={togglingReadReceipts}
                     onChange={async () => {
-                      setStore({ ...store, readReceipts: !store.readReceipts });
-                      await updateStore(store.id, {
-                        readReceipts: !store.readReceipts,
-                      });
+                      setTogglingReadReceipts(true);
+                      try {
+                        await updateStoreMutation.mutateAsync({
+                          readReceipts: !store.readReceipts,
+                        });
+                      } catch (error) {
+                        console.error("Error toggling read receipts:", error);
+                      } finally {
+                        setTogglingReadReceipts(false);
+                      }
                     }}
                     checked={store.readReceipts}
                   />
                 </div>
                 <div className="">
-                  <Button fullWidth variant="destructive">
+                  <Button
+                    fullWidth
+                    variant="destructive"
+                    onClick={handleLogout}
+                  >
                     {t("logOut")}
                   </Button>
                 </div>

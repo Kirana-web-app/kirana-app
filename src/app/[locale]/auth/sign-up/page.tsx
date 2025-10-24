@@ -2,15 +2,19 @@
 
 import { FC, useEffect, useState } from "react";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
 import { Input } from "@/src/components/UI/Input";
 import { ROUTES } from "@/src/constants/routes/routes";
-import { MdOutlineArrowBackIosNew } from "react-icons/md";
+import {
+  MdOutlineArrowBackIosNew,
+  MdVisibility,
+  MdVisibilityOff,
+} from "react-icons/md";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/UI/Button";
 import useAuthStore from "@/src/stores/authStore";
 import { getFirebaseErrorMessage } from "@/src/constants/authErrors";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
+import useAuthRedirect from "@/src/hooks/useAuthRedirect";
 
 interface SignupFormData {
   fullName: string;
@@ -20,35 +24,142 @@ interface SignupFormData {
   confirmPassword: string;
 }
 
+interface FormErrors {
+  fullName?: string;
+  email?: string;
+  phoneNumber?: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
 const SignUpPage: FC = () => {
-  const { signUp, authLoading, user } = useAuthStore();
+  const { signUp, authLoading } = useAuthStore();
   const [authError, setAuthError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<SignupFormData>();
+  // Form state
+  const [formData, setFormData] = useState<SignupFormData>({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    confirmPassword: "",
+  });
 
-  const password = watch("password");
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  useAuthRedirect();
 
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (user) {
-  //     router.push(ROUTES.BAZAAR);
-  //   }
-  // }, [user, router]);
+  const validateForm = (): boolean => {
+    const newErrors: FormErrors = {};
 
-  const onSubmit = async (data: SignupFormData) => {
+    // Full Name validation
+    if (!formData.fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+    } else if (formData.fullName.trim().length < 2) {
+      newErrors.fullName = "Full name must be at least 2 characters";
+    } else if (formData.fullName.trim().length > 64) {
+      newErrors.fullName = "Full name must be at most 64 characters";
+    } else if (!/^[\p{L}\p{M}\s]+$/u.test(formData.fullName)) {
+      newErrors.fullName = "Full name can only contain letters and spaces";
+    }
+
+    // Email validation
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (
+      !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(formData.email)
+    ) {
+      newErrors.email = "Invalid email address";
+    }
+
+    // Phone Number validation (optional) - Pakistani format
+    if (formData.phoneNumber.trim()) {
+      const phoneNumber = formData.phoneNumber.trim().replace(/[\s-]/g, ""); // Remove spaces and hyphens
+
+      // Pakistani phone number formats:
+      // +923XXXXXXXXX (13 digits with +92)
+      // 923XXXXXXXXX (12 digits without +)
+      // 03XXXXXXXXX (11 digits local format)
+      const pakistaniPhoneRegex = /^(\+92|92|0)?3\d{9}$/;
+
+      if (!pakistaniPhoneRegex.test(phoneNumber)) {
+        newErrors.phoneNumber =
+          "Invalid Pakistani phone number. Use format: 03XXXXXXXXX or +923XXXXXXXXX";
+      }
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(
+        formData.password
+      )
+    ) {
+      newErrors.password =
+        "Password must contain uppercase, lowercase, number and special character";
+    }
+
+    // Confirm Password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (formData.confirmPassword !== formData.password) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    // Clear error for this field when user starts typing
+    if (errors[name as keyof FormErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: undefined,
+      }));
+    }
+  };
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
     // Clear any previous errors
     setAuthError("");
 
-    console.log("Signup attempt:", data);
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    console.log("Signup attempt:", formData);
+    console.log("Form errors:", errors);
 
     try {
-      await signUp(data.fullName, data.email, data.password, data.phoneNumber);
+      // console.log("HO gaya sign up");
+
+      await signUp(
+        formData.fullName,
+        formData.email,
+        formData.password,
+        formData.phoneNumber
+      );
       router.push(ROUTES.SET_LANGUAGE);
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -61,6 +172,8 @@ const SignUpPage: FC = () => {
       } else {
         setAuthError("An unexpected error occurred. Please try again.");
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,7 +200,7 @@ const SignUpPage: FC = () => {
       {/* Form Content - Top aligned on mobile */}
       <div className="flex-1 flex flex-col max-w-lg mx-auto w-full">
         <div className="flex-1 flex flex-col justify-start sm:justify-center py-4 px-4">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={onSubmit} className="space-y-6">
             {/* Error Message Display */}
             {authError && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -136,98 +249,89 @@ const SignUpPage: FC = () => {
 
             {/* Full Name Input */}
             <Input
-              {...register("fullName", {
-                required: "Full name is required",
-                minLength: {
-                  value: 2,
-                  message: "Full name must be at least 2 characters",
-                },
-                pattern: {
-                  value: /^[\p{L}\p{M}\s]+$/u,
-                  message: "Full name can only contain letters and spaces",
-                },
-              })}
               id="fullName"
               name="fullName"
               type="text"
               label="Full Name"
-              required
-              error={errors.fullName?.message}
+              maxLength={64}
+              value={formData.fullName}
+              onChange={handleInputChange}
+              error={errors.fullName}
             />
 
             {/* Email Input */}
             <Input
-              {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
-                },
-              })}
               id="email"
               name="email"
               type="email"
               label="Email"
-              required
-              error={errors.email?.message}
+              value={formData.email}
+              onChange={handleInputChange}
+              error={errors.email}
             />
 
             {/* Phone Number Input */}
             <Input
-              {...register("phoneNumber", {
-                pattern: {
-                  value: /^[\+]?[1-9][\d]{0,15}$/,
-                  message: "Invalid phone number format",
-                },
-                minLength: {
-                  value: 10,
-                  message: "Phone number must be at least 10 digits",
-                },
-              })}
               id="phoneNumber"
               name="phoneNumber"
               type="tel"
               label="Phone Number (Optional)"
-              error={errors.phoneNumber?.message}
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              error={errors.phoneNumber}
             />
 
             {/* Password Input */}
-            <Input
-              {...register("password", {
-                required: "Password is required",
-                minLength: {
-                  value: 8,
-                  message: "Password must be at least 8 characters",
-                },
-                pattern: {
-                  value:
-                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-                  message:
-                    "Password must contain uppercase, lowercase, number and special character",
-                },
-              })}
-              id="password"
-              name="password"
-              type="password"
-              label="Password"
-              required
-              error={errors.password?.message}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                label="Password"
+                value={formData.password}
+                onChange={handleInputChange}
+                error={errors.password}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 pt-6"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <MdVisibilityOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <MdVisibility className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
 
             {/* Confirm Password Input */}
-            <Input
-              {...register("confirmPassword", {
-                required: "Please confirm your password",
-                validate: (value) =>
-                  value === password || "Passwords do not match",
-              })}
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              label="Confirm Password"
-              required
-              error={errors.confirmPassword?.message}
-            />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                label="Confirm Password"
+                value={formData.confirmPassword}
+                onChange={handleInputChange}
+                error={errors.confirmPassword}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 pt-6"
+                aria-label={
+                  showConfirmPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showConfirmPassword ? (
+                  <MdVisibilityOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                ) : (
+                  <MdVisibility className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                )}
+              </button>
+            </div>
 
             {/* Desktop Sign Up Button - Hidden on mobile */}
             <div className="hidden sm:block">
@@ -237,6 +341,19 @@ const SignUpPage: FC = () => {
                 size="lg"
                 fullWidth
                 className="mt-8"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Creating Account..." : "Sign Up"}
+              </Button>
+            </div>
+
+            {/* Mobile Sign Up Button - Inside form for validation */}
+            <div className="sm:hidden">
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                fullWidth
                 disabled={isSubmitting}
               >
                 {isSubmitting ? "Creating Account..." : "Sign Up"}
@@ -256,22 +373,6 @@ const SignUpPage: FC = () => {
               </Link>
             </span>
           </div>
-        </div>
-      </div>
-
-      {/* Mobile Sign Up Button - Fixed at bottom, always visible */}
-      <div className="sm:hidden flex-shrink-0 m-6">
-        <div className="">
-          <Button
-            type="submit"
-            variant="primary"
-            size="md"
-            fullWidth
-            onClick={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Creating Account..." : "Sign Up"}
-          </Button>
         </div>
       </div>
     </div>

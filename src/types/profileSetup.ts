@@ -10,7 +10,7 @@ export interface BusinessProfileFormData {
     // geolocation?: { latitude: number; longitude: number };
   };
   storeName?: string;
-  businessProfileImage: File;
+  profileImage: string | null;
 }
 
 export interface StepProps {

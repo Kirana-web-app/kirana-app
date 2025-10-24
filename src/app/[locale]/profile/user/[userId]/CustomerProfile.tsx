@@ -21,17 +21,28 @@ import useAuthStore from "@/src/stores/authStore";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import Link from "next/link";
 import { updateCustomer } from "@/src/utils/users";
+import {
+  compressImage,
+  COMPRESSION_PRESETS,
+  formatFileSize,
+  CompressionResult,
+} from "@/src/utils/imageCompressor";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const CustomerProfile: FC<{
   userData: Customer;
   handleBackClick: () => void;
   userAuthenticated: boolean;
 }> = ({ userData, handleBackClick, userAuthenticated }) => {
-  const { logOut, authLoading } = useAuthStore();
+  const { logOut, authLoading, setUserData } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const [user, setUser] = useState(userData);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [togglingReadReceipts, setTogglingReadReceipts] = useState(false);
+
+  const [loggingOut, setLoggingOut] = useState(false);
   const [editedFullName, setEditedFullName] = useState(userData.fullName);
   const [editedPhoneNumber, setEditedPhoneNumber] = useState(
     userData.phoneNumber || ""
@@ -40,27 +51,71 @@ const CustomerProfile: FC<{
   const [profileImagePreview, setProfileImagePreview] = useState<string | null>(
     null
   );
+  const [compressedImageData, setCompressedImageData] = useState<string | null>(
+    null
+  );
+  const [compressionInfo, setCompressionInfo] =
+    useState<CompressionResult | null>(null);
+  const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const t = useTranslations("CustomerProfile");
+
+  // Mutation for updating customer profile
+  const updateCustomerMutation = useMutation({
+    mutationFn: (updateData: Partial<Customer>) =>
+      updateCustomer(user.id, updateData),
+    onSuccess: (_, variables) => {
+      // Update the customer query cache
+      queryClient.setQueryData(
+        [`customer_${user.id}`],
+        (oldData: Customer | undefined) => {
+          if (!oldData) return oldData;
+          return { ...oldData, ...variables };
+        }
+      );
+
+      // Update local state
+      setUser((prev) => ({ ...prev, ...variables }));
+
+      // IMPORTANT: Update authStore if this is the authenticated user
+      if (userAuthenticated) {
+        setUserData({ ...user, ...variables } as Customer);
+      }
+
+      // Invalidate any queries that might display user info (like chats, reviews, etc.)
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+      queryClient.invalidateQueries({ queryKey: ["stores"] });
+    },
+    onError: (error) => {
+      console.error("Error updating customer profile:", error);
+      alert("Failed to update profile. Please try again.");
+    },
+  });
 
   const languageOptions = [
     {
       value: "en",
       label: t("english"),
       onClick: async () => {
-        setUser({ ...user, defaultLanguage: "en" });
-        await updateCustomer(user.id, { defaultLanguage: "en" });
-        router.push(`/en${ROUTES.PROFILE.USER(user.id)}`);
+        try {
+          await updateCustomerMutation.mutateAsync({ defaultLanguage: "en" });
+          router.push(`/en${ROUTES.PROFILE.USER(user.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
     {
       value: "ur",
       label: t("urdu"),
       onClick: async () => {
-        setUser({ ...user, defaultLanguage: "ur" });
-        await updateCustomer(user.id, { defaultLanguage: "ur" });
-        router.push(`/ur${ROUTES.PROFILE.USER(user.id)}`);
+        try {
+          await updateCustomerMutation.mutateAsync({ defaultLanguage: "ur" });
+          router.push(`/ur${ROUTES.PROFILE.USER(user.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
       },
     },
   ];
@@ -71,6 +126,8 @@ const CustomerProfile: FC<{
     setEditedPhoneNumber(user.phoneNumber || "");
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
   const handleCancelEdit = () => {
@@ -79,17 +136,60 @@ const CustomerProfile: FC<{
     setEditedPhoneNumber(user.phoneNumber || "");
     setProfileImageFile(null);
     setProfileImagePreview(null);
+    setCompressedImageData(null);
+    setCompressionInfo(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setProfileImageFile(file);
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file");
+      return;
+    }
+
+    // Validate file size (max 10MB before compression)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Please select an image smaller than 10MB");
+      return;
+    }
+
+    setProfileImageFile(file);
+    setIsCompressing(true);
+
+    try {
+      // Create preview for immediate display
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileImagePreview(e.target?.result as string);
       };
       reader.readAsDataURL(file);
+
+      // Compress image for Firestore storage
+      const compressionResult = await compressImage(
+        file,
+        COMPRESSION_PRESETS.PROFILE
+      );
+
+      setCompressedImageData(compressionResult.compressedImage);
+      setCompressionInfo(compressionResult);
+
+      console.log("Image compressed successfully:", {
+        originalSize: formatFileSize(compressionResult.originalSize),
+        compressedSize: formatFileSize(compressionResult.compressedSize),
+        compressionRatio: `${compressionResult.compressionRatio.toFixed(1)}%`,
+      });
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      alert("Failed to process image. Please try a different image.");
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
+    } finally {
+      setIsCompressing(false);
     }
   };
 
@@ -112,53 +212,48 @@ const CustomerProfile: FC<{
         phoneNumber: editedPhoneNumber.trim() || null,
       };
 
-      // TODO: Upload image to Firebase Storage if profileImageFile exists
-      // For now, we'll keep the existing image or use null for new uploads
-      // In a real implementation, you would:
-      // 1. Upload profileImageFile to Firebase Storage
-      // 2. Get the download URL
-      // 3. Set updateData.profileImage = downloadURL
-
-      if (profileImageFile && profileImagePreview) {
-        // For demo purposes, we'll use the preview URL
-        // In production, replace this with Firebase Storage upload
-        console.log("Image file selected:", profileImageFile.name);
-        updateData.profileImage = profileImagePreview;
+      // Save compressed image to Firestore
+      if (compressedImageData) {
+        updateData.profileImage = compressedImageData;
+        console.log("Saving compressed image to Firestore:", {
+          size: formatFileSize(compressionInfo?.compressedSize || 0),
+          compression: `${compressionInfo?.compressionRatio.toFixed(1)}%`,
+        });
       }
 
-      await updateCustomer(user.id, updateData);
-
-      setUser({
-        ...user,
-        fullName: editedFullName.trim(),
-        phoneNumber: editedPhoneNumber.trim() || null,
-        profileImage: profileImagePreview || user.profileImage,
-      });
+      // Use mutation instead of direct update
+      await updateCustomerMutation.mutateAsync(updateData);
 
       setIsEditing(false);
       setProfileImageFile(null);
       setProfileImagePreview(null);
+      setCompressedImageData(null);
+      setCompressionInfo(null);
 
       // Success feedback
       console.log("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile. Please try again.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleLogOut = async () => {
+    setLoggingOut(true);
+
     try {
       await logOut();
       router.push(ROUTES.AUTH.LOGIN);
     } catch (error) {
       console.error("Error logging out:", error);
+      setLoggingOut(false);
     }
   };
 
   if (authLoading) return <LoadingSpinner className="mt-80" />;
+
+  if (loggingOut) return <LoadingSpinner heightScreen />;
 
   return (
     <div className="py-6">
@@ -173,12 +268,12 @@ const CustomerProfile: FC<{
         <div className="py-4 ">
           <div className="px-4 space-y-6 w-full">
             <div className=" flex items-center gap-4">
-              <div className="relative w-16 h-16 bg-gray-100 rounded-full overflow-hidden">
+              <div className="relative w-24 h-24 bg-gray-100 rounded-full overflow-hidden">
                 {(profileImagePreview || user.profileImage) && (
                   <Image
                     src={profileImagePreview || user.profileImage!}
                     alt={`${user.fullName}'s profile picture`}
-                    className="rounded-full w-16 h-16 object-cover"
+                    className="rounded-full w-full h-full object-cover "
                     width={64}
                     height={64}
                   />
@@ -187,9 +282,14 @@ const CustomerProfile: FC<{
                   <>
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity"
+                      disabled={isCompressing}
+                      className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white opacity-0 hover:opacity-100 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <MdCameraAlt className="size-6" />
+                      {isCompressing ? (
+                        <LoadingSpinner className="size-6 text-white" />
+                      ) : (
+                        <MdCameraAlt className="size-6" />
+                      )}
                     </button>
                     <input
                       ref={fileInputRef}
@@ -272,7 +372,7 @@ const CustomerProfile: FC<{
             </div>
             {userAuthenticated && (
               <Link
-                href={ROUTES.BAZAAR}
+                href={ROUTES.BAZAAR("saved")}
                 className="flex hover:bg-gray-50 px-4 rounded-xl items-center justify-between py-6"
               >
                 <div className="flex items-center gap-3">
@@ -317,11 +417,18 @@ const CustomerProfile: FC<{
                     <span>{t("readReceipts")}</span>
                   </div>
                   <Toggle
+                    isLoading={togglingReadReceipts}
                     onChange={async () => {
-                      setUser({ ...user, readReceipts: !user.readReceipts });
-                      await updateCustomer(user.id, {
-                        readReceipts: !user.readReceipts,
-                      });
+                      setTogglingReadReceipts(true);
+                      try {
+                        await updateCustomerMutation.mutateAsync({
+                          readReceipts: !user.readReceipts,
+                        });
+                      } catch (error) {
+                        console.error("Error toggling read receipts:", error);
+                      } finally {
+                        setTogglingReadReceipts(false);
+                      }
                     }}
                     checked={user.readReceipts}
                   />
