@@ -103,7 +103,7 @@ const SignUpPage: FC = () => {
       )
     ) {
       newErrors.password =
-        "Password must contain uppercase, lowercase, number and special character";
+        "Password must contain uppercase, lowercase, number and special character(@ $ ! % * ? &)";
     }
 
     // Confirm Password validation
