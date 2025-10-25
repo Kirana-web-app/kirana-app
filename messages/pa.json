@@ -1,0 +1,151 @@
+{
+  "locale": { "locale": "pa" },
+  "SetUpBusinessProfile": {
+    "title_1": "کی تسیں کاروباری پروفائل سیٹ اپ کرنا چاہندے او؟",
+    "title_2": "کاروباری پروفائل سیٹ اپ کرو",
+    "description": "اپنے آن لائن ویچن والے پروفائل نال ہور گاہکاں تک پہنچو، اپنے سامان نوں دکھاؤ، تے اپنے کاروبار نوں ودھاؤ۔",
+    "yes": "ہاں",
+    "no": "نئیں"
+  },
+  "StepOne": {
+    "heading": "مالک دا ناں",
+    "sub-heading": "اکیلے مالک دے کاروباراں لئی، اپنا پورا ناں داخل کرو۔",
+    "placeholder": "مالک دا پورا ناں",
+    "errors": {
+      "required": "مالک دا ناں لوڑیندا اے",
+      "minLength": "مالک دا ناں گھٹو گھٹ 2 اکھراں دا ہونا چاہیدا اے",
+      "pattern": "مالک دے ناں وچ صرف اکھر تے سپیس ہو سکدے نیں"
+    }
+  },
+  "StepTwo": {
+    "heading": "کاروبار دی قسم",
+    "sub-heading": "تسیں کیہہ قسم دا کاروبار چلا رہے او؟",
+    "label": "کاروبار دی قسم",
+    "placeholder": "جویں: کریانہ سٹور، ریٹیل دکان، ریسٹورنٹ",
+    "errors": {
+      "required": "کاروبار دی قسم لوڑیندی اے",
+      "minLength": "کاروبار دی قسم گھٹو گھٹ 2 اکھراں دی ہونی چاہیدی اے"
+    }
+  },
+  "StepThree": {
+    "heading": "تہاڈی دکان کتھے واقع اے؟",
+    "sub-heading": "تہاڈے کاروبار یا دکان دا پتہ تے تھاں۔",
+    "label_1": "ملک",
+    "placeholder_1": "جویں: پاکستان",
+    "label_2": "شہر",
+    "placeholder_2": "جویں: کراچی",
+    "label_3": "پتہ",
+    "placeholder_3": "سٹور دا پتہ",
+    "errors": {
+      "countryRequired": "ملک لوڑیندا اے",
+      "countryMinLength": "ملک دا ناں گھٹو گھٹ 2 اکھراں دا ہونا چاہیدا اے",
+      "cityRequired": "شہر لوڑیندا اے",
+      "cityMinLength": "شہر دا ناں گھٹو گھٹ 2 اکھراں دا ہونا چاہیدا اے",
+      "addressRequired": "پتہ لوڑیندا اے",
+      "addressMinLength": "پتہ گھٹو گھٹ 5 اکھراں دا ہونا چاہیدا اے"
+    }
+  },
+  "StepFour": {
+    "heading": "سٹور دا ناں",
+    "sub-heading": "تہاڈا سٹور یا کاروبار دا ناں (جے کوئی نئیں تاں خالی چھڈو)۔",
+    "placeholder": "سٹور دا ناں",
+    "errors": {
+      "minLength": "سٹور دا ناں گھٹو گھٹ 2 اکھراں دا ہونا چاہیدا اے",
+      "maxLength": "سٹور دا ناں 50 اکھراں توں گھٹ ہونا چاہیدا اے"
+    }
+  },
+  "StepFive": {
+    "heading": "کاروباری پروفائل دی تصویر",
+    "sub-heading": "اپنی دکان، لوگو، یا کاروباری مالک دی تصویر اپ لوڈ کرو۔",
+    "placeholder": "تصویر اپ لوڈ کرو",
+    "errors": {
+      "required": "کاروباری پروفائل دی تصویر لوڑیندی اے",
+      "fileType": "مہربانی کر کے اک صحیح تصویر فائل اپ لوڈ کرو (JPEG, PNG, WebP)",
+      "fileSize": "فائل دا سائز 5MB توں گھٹ ہونا چاہیدا اے"
+    }
+  },
+  "StepSix": {
+    "heading": "اپنا پروفائل ویکھو",
+    "sub-heading": "مہربانی کر کے سبمٹ کرن توں پہلاں اپنی کاروباری پروفائل دی معلومات دی جانچ کرو۔",
+    "edit-message": "تبدیلی دی لوڑ اے؟ تسیں واپس جا کے کوئی وی معلومات نوں تبدیل کر سکدے او۔",
+    "edit-button": "پروفائل تبدیل کرو",
+    "submit-button": "سیٹ اپ مکمل کرو"
+  },
+  "CustomerProfile": {
+    "title": "پروفائل",
+    "editProfile": "پروفائل تبدیل کرو",
+    "chatWithCustomer": "گاہک نال گل بات کرو",
+    "saved": "محفوظ کیتا",
+    "settings": "سیٹنگز",
+    "defaultLanguage": "بنیادی زبان",
+    "selectLanguage": "اک زبان چنو",
+    "english": "انگریزی",
+    "urdu": "اردو",
+    "punjabi": "پنجابی",
+    "readReceipts": "پڑھن دیاں رسیداں",
+    "logOut": "لاگ آؤٹ"
+  },
+  "StoreProfile": {
+    "editProfile": "پروفائل تبدیل کرو",
+    "storeRating": "سٹور ریٹنگ",
+    "chatWithSeller": "ویچن والے نال گل بات کرو",
+    "creatingChat": "گل بات بنائی جا رہی اے",
+    "deliveryRate": "ڈیلیوری دی رفتار",
+    "address": "پتہ",
+    "reviews": "جائزے",
+    "rating": "ریٹنگ",
+    "deliverySpeed": "انہاں دی ڈیلیوری کنی تیز سی؟",
+    "submitReview": "جائزہ جمع کراؤ",
+    "leaveReview": "اک جائزہ چھڈو",
+    "giveReview": "اک جائزہ دیو",
+    "noReviews": "ابے تک کوئی جائزہ نئیں۔",
+    "writeReviewPlaceholder": "اپنا جائزہ لکھو...",
+    "submittingReview": "جمع کیتا جا رہیا اے...",
+    "settings": "سیٹنگز",
+    "defaultLanguage": "بنیادی زبان",
+    "selectLanguage": "اک زبان چنو",
+    "english": "انگریزی",
+    "urdu": "اردو",
+    "punjabi": "پنجابی",
+    "readReceipts": "پڑھن دیاں رسیداں",
+    "logOut": "لاگ آؤٹ"
+  },
+  "Chat": {
+    "messages": "پیغامات",
+    "searchConversations": "اپنیاں گل باتاں تلاش کرو",
+    "typeMessage": "اک پیغام ٹائپ کرو...",
+    "send": "بھیجو",
+    "backToChats": "گل باتاں تے واپس",
+    "selectConversation": "اک گل بات چنو",
+    "chooseCustomer": "گل بات شروع کرن لئی سائیڈ بار توں اک یوزر چنو۔",
+    "online": "آن لائن",
+    "lastSeen": "آخری واری ویکھیا",
+    "noConversationsFound": "کوئی گل بات نئیں ملی۔ شروع کرن لئی اک سٹور نال گل بات شروع کرو۔"
+  },
+  "Bazaar": {
+    "nearYou": "تہاڈے نیڑے",
+    "saved": "محفوظ کیتا",
+    "search": "تلاش کرو",
+    "filters": "فلٹر",
+    "clearFilters": "فلٹر صاف کرو",
+    "businessType": "کاروبار دی قسم",
+    "selectBusinessTypes": "کاروبار دیاں قسماں چنو",
+    "deliveryTime": "ڈیلیوری دا ویلہ",
+    "rating": "ریٹنگ",
+    "area": "علاقہ",
+    "selectArea": "علاقہ چنو",
+    "quickDelivery": "تیز (5 - 15 منٹ)",
+    "fastDelivery": "تیز رفتار (15 - 30 منٹ)",
+    "averageDelivery": "اوسط (30 - 60 منٹ)",
+    "slowDelivery": "سست (1 - 6 گھنٹے)",
+    "slowestDelivery": "سب توں سست (1 - 3 دن)",
+    "notRatedYet": "ابے تک ریٹ نئیں کیتا گیا",
+    "newStore": "نواں سٹور",
+    "noStoresMatch": "تہاڈے فلٹراں نال کوئی سٹور میل نئیں کھاندا",
+    "noSavedStores": "ابے تک کوئی سٹور محفوظ نئیں کیتا گیا",
+    "noStoresNearby": "نیڑے کوئی سٹور نئیں",
+    "adjustFilters": "ہور نتیجے ویکھن لئی اپنے تلاش دے معیار نوں ایڈجسٹ کرو یا کجھ فلٹر صاف کرو۔",
+    "saveStoresMessage": "ایتھے ویکھن لئی اپنے پسندیدہ سٹوراں نوں محفوظ کرو۔",
+    "expandSearch": "اسیں تہاڈے علاقے وچ کوئی سٹور نئیں لبھ سکے۔"
+  }
+}

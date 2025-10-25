@@ -111,7 +111,7 @@ const StoreCard: FC<StoreCardProps> = ({
           )}
         </div>
         <p className="text-gray-600 text-sm store-type">
-          {store.address.addressLine}
+          {store?.address?.addressLine}
         </p>
         <div className="flex items-center gap-1">
           <MdDeliveryDining className="size-5 text-primary" />
