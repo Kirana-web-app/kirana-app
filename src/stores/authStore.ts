@@ -29,6 +29,7 @@ type Action = {
   ) => Promise<UserCredential>;
   logIn: (email: string, password: string) => Promise<UserCredential>;
   logOut: () => Promise<void>;
+  deleteUser: () => Promise<void>;
 };
 
 const useAuthStore = create<State & Action>((set) => ({
@@ -125,6 +126,20 @@ const useAuthStore = create<State & Action>((set) => ({
       set({ user: null, userData: null });
     } catch (error) {
       console.error("Error logging out:", error);
+      throw error;
+    } finally {
+      set({ authLoading: false });
+    }
+  },
+  deleteUser: async () => {
+    set({ authLoading: true });
+    try {
+      if (auth.currentUser) {
+        await auth.currentUser.delete();
+        set({ user: null, userData: null });
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
       throw error;
     } finally {
       set({ authLoading: false });

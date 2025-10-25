@@ -20,7 +20,7 @@ import {
 import useAuthStore from "@/src/stores/authStore";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import Link from "next/link";
-import { updateCustomer } from "@/src/utils/users";
+import { deleteUserAccount, updateCustomer } from "@/src/utils/users";
 import {
   compressImage,
   COMPRESSION_PRESETS,
@@ -441,6 +441,20 @@ const CustomerProfile: FC<{
                   >
                     {t("logOut")}
                   </Button>
+
+                  {/* <button
+                    onClick={async () => {
+                      try {
+                        console.log("deleting user");
+                        await deleteUserAccount(user.id);
+                        console.log("user deleted");
+                      } catch (error) {
+                        console.error("Error deleting user:", error);
+                      }
+                    }}
+                  >
+                    Delete ACC
+                  </button> */}
                 </div>
               </div>
             </div>

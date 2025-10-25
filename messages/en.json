@@ -110,15 +110,15 @@
   },
   "Chat": {
     "messages": "Messages",
-    "searchConversations": "Search conversations...",
+    "searchConversations": "Search your conversations",
     "typeMessage": "Type a message...",
     "send": "Send",
     "backToChats": "Back to chats",
     "selectConversation": "Select a conversation",
-    "chooseCustomer": "Choose a customer from the sidebar to start chatting.",
+    "chooseCustomer": "Choose a user from the sidebar to start chatting.",
     "online": "Online",
     "lastSeen": "Last seen",
-    "noConversationsFound": "No conversations found. Search for a Store to start a chat."
+    "noConversationsFound": "No conversations found. Start a chat with a Store to begin."
   },
   "Bazaar": {
     "nearYou": "Near You",
@@ -130,6 +130,8 @@
     "selectBusinessTypes": "Select business types",
     "deliveryTime": "Delivery Time",
     "rating": "Rating",
+    "area": "Area",
+    "selectArea": "Select Area",
     "quickDelivery": "Quick (5 - 15 mins)",
     "fastDelivery": "Fast (15 - 30 mins)",
     "averageDelivery": "Average (30 - 60 mins)",

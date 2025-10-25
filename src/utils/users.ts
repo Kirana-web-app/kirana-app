@@ -287,6 +287,23 @@ export const updateCustomer = async (
   }
 };
 
+export const deleteUserAccount = async (userId: string) => {
+  if (!userId) {
+    throw new Error("User ID must be provided");
+  }
+  try {
+    const userDocRef = doc(db, "users", userId);
+    await deleteDoc(userDocRef);
+    if (auth.currentUser) {
+      await auth.currentUser.delete();
+    }
+    console.log("User account deleted successfully");
+  } catch (error) {
+    console.error("Error deleting user account:", error);
+    throw error;
+  }
+};
+
 // adding review in a sub collection of a store doc
 export const addStoreReview = async (
   storeId: string,

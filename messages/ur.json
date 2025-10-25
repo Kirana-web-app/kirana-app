@@ -110,15 +110,15 @@
   },
   "Chat": {
     "messages": "گفتگو",
-    "searchConversations": "گفتگو تلاش کریں...",
+    "searchConversations": "اپنی گفتگو کو تلاش کریں۔",
     "typeMessage": "پیغام ٹائپ کریں...",
     "send": "بھیجیں",
     "backToChats": "چیٹس پر واپس",
     "selectConversation": "گفتگو منتخب کریں",
-    "chooseCustomer": "چیٹ شروع کرنے کے لیے سائیڈبار سے کوئی گاہک منتخب کریں۔",
+    "chooseCustomer": "چیٹنگ شروع کرنے کے لیے سائڈبار سے صارف کا انتخاب کریں۔",
     "online": "آن لائن",
     "lastSeen": "آخری بار دیکھا",
-    "noConversationsFound": "کوئی چیٹس نہیں ملے۔ چیٹ شروع کرنے کے لیے اسٹور تلاش کریں۔"
+    "noConversationsFound": "کوئی بات چیت نہیں ملی۔ شروع کرنے کے لیے اسٹور کے ساتھ چیٹ شروع کریں۔"
   },
   "Bazaar": {
     "nearYou": "آپ کے قریب",
@@ -130,6 +130,8 @@
     "selectBusinessTypes": "کاروباری اقسام منتخب کریں",
     "deliveryTime": "ڈیلیوری کا وقت",
     "rating": "درجہ بندی",
+    "area": "علاقہ",
+    "selectArea": "علاقہ منتخب کریں",
     "quickDelivery": "تیز (5 - 15 منٹ)",
     "fastDelivery": "تیز رفتار (15 - 30 منٹ)",
     "averageDelivery": "اوسط (30 - 60 منٹ)",

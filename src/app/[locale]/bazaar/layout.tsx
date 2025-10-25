@@ -32,6 +32,7 @@ import {
   businessTypesEnglish,
   businessTypesUrdu,
 } from "@/src/data/businessTypes";
+import { areas } from "@/src/data/areas";
 import { useTranslations } from "next-intl";
 import useAuthStore from "@/src/stores/authStore";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
@@ -47,11 +48,13 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
     selectedBusinessTypes,
     selectedDeliveryRate,
     selectedRating,
+    selectedArea,
     setSearchQuery,
     addBusinessType,
     removeBusinessType,
     setSelectedDeliveryRate,
     setSelectedRating,
+    setSelectedArea,
     clearFilters,
   } = useFilterStore();
 
@@ -182,6 +185,21 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                     </div>
                   )}
                 </div>
+                {/* Area Filter */}
+                <div className="px-4 py-6 border-b border-gray-200">
+                  <h3 className="text-sm font-medium text-gray-900 mb-4">
+                    <span data-translated>{t("area")}</span>
+                  </h3>
+                  <ComboboxDropDown
+                    options={areas}
+                    value={selectedArea}
+                    onChange={(value) => setSelectedArea(value || "")}
+                    placeholder={t("selectArea")}
+                    name="area"
+                    id="mobile-area"
+                  />
+                </div>
+
                 {/* Delivery Rate Filter */}
                 <div className="px-4 py-6 border-b border-gray-200">
                   <h3 className="text-sm font-medium text-gray-900 mb-4">
@@ -396,7 +414,20 @@ const FiltersLayout: FC<{ children: ReactNode }> = ({ children }) => {
                   </div>
                 </div>
 
-                <h3 className="sr-only">Additional Filters</h3>
+                {/* Area Filter */}
+                <div className="border-b border-gray-200 pb-6 mb-6">
+                  <h3 className="text-sm font-medium text-gray-900 mb-4">
+                    <span data-translated>{t("area")}</span>
+                  </h3>
+                  <ComboboxDropDown
+                    options={areas}
+                    value={selectedArea}
+                    onChange={(value) => setSelectedArea(value || "")}
+                    placeholder={t("selectArea")}
+                    name="area"
+                    id="desktop-area"
+                  />
+                </div>
               </form>
 
               <div className="lg:col-span-3">{children}</div>

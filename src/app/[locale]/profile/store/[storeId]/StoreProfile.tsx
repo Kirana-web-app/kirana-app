@@ -30,6 +30,7 @@ import {
   updateStore,
   saveStore,
   unsaveStore,
+  deleteUserAccount,
 } from "@/src/utils/users";
 import LoadingSpinner from "@/src/components/UI/LoadingSpinner";
 import { deliveryRate } from "@/src/constants/deliverySpeeds";
@@ -787,6 +788,19 @@ const StoreProfile: FC<{
                     {t("logOut")}
                   </Button>
                 </div>
+                {/* <button
+                  onClick={async () => {
+                    try {
+                      console.log("deleting user");
+                      await deleteUserAccount(store.id);
+                      console.log("user deleted");
+                    } catch (error) {
+                      console.error("Error deleting user:", error);
+                    }
+                  }}
+                >
+                  Delete ACC
+                </button> */}
               </div>
             </div>
           </div>

@@ -89,14 +89,17 @@ const StoreCard: FC<StoreCardProps> = ({
         <p className="text-gray-600 text-sm store-type">
           {getTranslatedBusinessType(store.type)}
         </p>
+
         <div className="text-primary">
           {store.avgRating ? (
-            <div className="">
-              {[1, 2, 3, 4, 5].map((key) => (
-                <span key={key} className="text-xl">
-                  {key <= Math.floor(store.avgRating ?? 0) ? "★" : "☆"}{" "}
-                </span>
-              ))}
+            <div className="flex items-center gap-2">
+              <div className="">
+                {[1, 2, 3, 4, 5].map((key) => (
+                  <span key={key} className="text-xl">
+                    {key <= Math.floor(store.avgRating ?? 0) ? "★" : "☆"}{" "}
+                  </span>
+                ))}
+              </div>
               <p className="font-semibold text-sm rating">
                 ({store.avgRating})
               </p>
@@ -107,6 +110,9 @@ const StoreCard: FC<StoreCardProps> = ({
             </span>
           )}
         </div>
+        <p className="text-gray-600 text-sm store-type">
+          {store.address.addressLine}
+        </p>
         <div className="flex items-center gap-1">
           <MdDeliveryDining className="size-5 text-primary" />
           <p className="delivery-speed">

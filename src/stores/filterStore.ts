@@ -5,6 +5,7 @@ export interface FilterState {
   selectedBusinessTypes: string[];
   selectedDeliveryRate: string;
   selectedRating: number;
+  selectedArea: string;
 }
 
 export interface FilterActions {
@@ -14,6 +15,7 @@ export interface FilterActions {
   removeBusinessType: (type: string) => void;
   setSelectedDeliveryRate: (rate: string) => void;
   setSelectedRating: (rating: number) => void;
+  setSelectedArea: (area: string) => void;
   clearFilters: () => void;
 }
 
@@ -24,6 +26,7 @@ const defaultState: FilterState = {
   selectedBusinessTypes: [],
   selectedDeliveryRate: "",
   selectedRating: 0,
+  selectedArea: "",
 };
 
 export const useFilterStore = create<FilterStore>((set, get) => ({
@@ -48,6 +51,8 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
   setSelectedDeliveryRate: (rate) => set({ selectedDeliveryRate: rate }),
 
   setSelectedRating: (rating) => set({ selectedRating: rating }),
+
+  setSelectedArea: (area) => set({ selectedArea: area }),
 
   clearFilters: () => set(defaultState),
 }));
