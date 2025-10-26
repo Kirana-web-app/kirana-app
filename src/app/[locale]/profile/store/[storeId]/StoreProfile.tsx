@@ -238,6 +238,18 @@ const StoreProfile: FC<{
         }
       },
     },
+    {
+      value: "pa",
+      label: t("punjabi"),
+      onClick: async () => {
+        try {
+          await updateStoreMutation.mutateAsync({ defaultLanguage: "pa" });
+          router.push(`/pa${ROUTES.PROFILE.STORE(store.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
+      },
+    },
   ];
 
   const handleEditClick = () => {
@@ -330,7 +342,7 @@ const StoreProfile: FC<{
       return;
     }
 
-    if (!editedAddress.trim()) {
+    if (!editedAddress?.trim()) {
       alert("Address is required");
       return;
     }

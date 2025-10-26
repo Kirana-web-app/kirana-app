@@ -118,6 +118,18 @@ const CustomerProfile: FC<{
         }
       },
     },
+    {
+      value: "pa",
+      label: t("punjabi"),
+      onClick: async () => {
+        try {
+          await updateCustomerMutation.mutateAsync({ defaultLanguage: "pa" });
+          router.push(`/pa${ROUTES.PROFILE.USER(user.id)}`);
+        } catch (error) {
+          console.error("Error updating language:", error);
+        }
+      },
+    },
   ];
 
   const handleEditClick = () => {

@@ -46,7 +46,7 @@ export const filterStores = (
         return true;
       }
 
-      const storeAddress = store.address.addressLine.toLowerCase();
+      const storeAddress = store.address.addressLine?.toLowerCase();
 
       // Split the area string into words
       const areaWords = filters.selectedArea
@@ -55,7 +55,7 @@ export const filterStores = (
         .filter((word) => word.length > 2); // ignore very short words
 
       // Check if any of those words appear in the address
-      const matchFound = areaWords.some((word) => storeAddress.includes(word));
+      const matchFound = areaWords.some((word) => storeAddress?.includes(word));
 
       if (!matchFound) {
         return false;

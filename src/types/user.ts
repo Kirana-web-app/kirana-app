@@ -32,7 +32,7 @@ export interface User {
   phoneNumber?: string | null;
   profileImage?: string | null;
   role: UserRole;
-  defaultLanguage: "en" | "ur";
+  defaultLanguage: "en" | "ur" | "pa";
   createdAt: FieldValue | Timestamp;
   updatedAt: FieldValue | Timestamp;
   profileCreated?: boolean;
@@ -60,6 +60,6 @@ export interface Customer extends User {
 export interface Address {
   country: string;
   city: string;
-  addressLine: string;
+  addressLine?: string;
   location?: Location | null;
 }
